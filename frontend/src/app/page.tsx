@@ -1,0 +1,128 @@
+import Image from "next/image";
+import Link from "next/link";
+
+// =================================================================================
+// 1. TYPE DEFINITIONS - Written to perfectly match your API data
+// =================================================================================
+
+interface StrapiImage {
+  id: number;
+  url: string;
+  width: number;
+  height: number;
+  name: string;
+}
+
+// This is the one and only Product type we need. It matches your flat structure.
+interface Product {
+  id: number;
+  Name: string;
+  SKU: string;
+  Description: string;
+  Price: number;
+  Images: StrapiImage[];
+}
+
+// =================================================================================
+// 2. DATA FETCHING FUNCTION - Simplified and Correct
+// =================================================================================
+
+async function getProducts(): Promise<Product[]> {
+  const strapiUrl =
+    process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
+  // The API endpoint is simple.
+  const apiUrl = `${strapiUrl}/api/products?populate=Images`;
+
+  try {
+    const res = await fetch(apiUrl, { next: { revalidate: 60 } });
+    if (!res.ok) {
+      console.error("Failed to fetch products:", res.statusText);
+      return [];
+    }
+    const responseData = await res.json();
+
+    // The products are in the `data` property. Return that array, or an empty one if it doesn't exist.
+    return responseData.data || [];
+  } catch (error) {
+    console.error("Error fetching products from Strapi:", error);
+    return [];
+  }
+}
+
+// =================================================================================
+// 3. PRODUCT CARD COMPONENT (This component was already correct)
+// =================================================================================
+
+function ProductCard({ product }: { product: Product }) {
+  const { Name, Price, Images } = product;
+  const imageUrl = Images?.[0]?.url;
+  const strapiUrl =
+    process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
+
+  const priceFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+
+  return (
+    <Link
+      href={`/products/${product.id}`}
+      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+    >
+      <div className="relative h-56 w-full">
+        {imageUrl ? (
+          <Image
+            src={`${strapiUrl}${imageUrl}`}
+            alt={Name || "Product Image"}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-200">
+            <span className="text-gray-500">No Image</span>
+          </div>
+        )}
+      </div>
+      <div className="bg-white p-4">
+        <h3 className="text-lg font-semibold text-gray-800 truncate">
+          {Name || "Untitled Product"}
+        </h3>
+        <p className="mt-1 text-md font-medium text-gray-600">
+          {priceFormatter.format(Price)}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+// =================================================================================
+// 4. HOME PAGE COMPONENT (Simplified to remove unnecessary validation)
+// =================================================================================
+
+export default async function HomePage() {
+  // Our getProducts function is now simple and reliable.
+  const products = await getProducts();
+
+  return (
+    <main className="container mx-auto px-4 py-12">
+      <h1 className="mb-10 text-center text-4xl font-bold tracking-tight text-gray-900">
+        Our Latest Products
+      </h1>
+
+      {products.length > 0 ? (
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center">
+          <p className="text-lg text-gray-600">
+            No products found. Please check back later!
+          </p>
+        </div>
+      )}
+    </main>
+  );
+}
