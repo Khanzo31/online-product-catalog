@@ -4,7 +4,7 @@ This repository contains the source code for a responsive online product catalog
 
 ## Project Status: MVP++ Complete
 
-All core P1 (Must-Have) features are now implemented and functional. We have also completed several P2 (Should-Have) features, making the application robust and ready for further enhancement.
+All core P1 (Must-Have) features are now implemented and functional. We have also completed all addressable P2 (Should-Have) features, making the application robust, accessible, analytics-enabled, and ready for the final implementation of its email service.
 
 ### Implemented Features
 
@@ -13,23 +13,23 @@ All core P1 (Must-Have) features are now implemented and functional. We have als
 - **(FR-1.1)** Secure Administrator Login to a management panel.
 - **(FR-1.3)** Product Creation with name, SKU, description, images, price, and type.
 - **(FR-1.4)** Full Product Management (View, Edit, Delete).
-- **(FR-1.5)** Product Type Management (Create, Edit, Delete categories like "Artwork" and "Collectible").
+- **(FR-1.5)** Product Type Management (Create, Edit, Delete categories and custom properties).
 - **(FR-1.7)** Inquiry Management Log to store all customer inquiries.
 - **(FR-1.8)** Static Page Management for "About Us," "Privacy Policy," etc.
-- **(FR-1.2) Admin Dashboard (P2):** A password-protected dashboard at `/dashboard` showing key site metrics like total products and inquiries.
+- **(FR-1.2) Admin Dashboard (P2):** A password-protected dashboard at `/dashboard` showing key site metrics.
+- **(NFR-4.2)** Secure server-side form validation and cookie-based authentication for the dashboard.
 
 #### Customer / Frontend Features
 
 - **(FR-2.1)** A Home Page displaying a gallery of products.
 - **(FR-2.2)** A dynamic Product Details Page for each item.
 - **(FR-2.3)** A functional Product Inquiry Form that saves submissions to the backend.
-- **(FR-2.4) Search & Filtering Page:** A comprehensive search page that now includes:
-  - Keyword search.
-  - Filtering by Product Type.
-  - Dynamic generation of custom property filters (e.g., "Artist," "Origin") when a type is selected.
-  - Partial, case-insensitive client-side filtering on custom properties for a user-friendly experience.
+- **(FR-2.4)** A comprehensive Search & Filtering Page with keyword search, type filtering, and dynamic custom property filtering.
 - **(FR-2.7)** The ability to view static content pages via dynamic routes.
-- **(FR-2.8) Cookie Consent Banner:** A banner to inform users about cookie usage and request consent, which persists the user's choice.
+- **(FR-2.8)** Cookie Consent Banner that persists the user's choice in local storage.
+- **(NFR-1.1 & NFR-1.2)** A fully responsive design compatible with modern browsers.
+- **(NFR-1.3) Accessibility (WCAG AA) (P2):** A full accessibility audit has been completed. All pages and interactive components (image galleries, forms, modals) are now semantically structured, keyboard-navigable, and provide feedback for screen readers.
+- **(NFR-6.1) Third-Party Analytics (P2):** Consent-aware integration with Google Analytics. Tracking scripts are only loaded after the user explicitly accepts via the cookie banner.
 
 ---
 
@@ -37,24 +37,10 @@ All core P1 (Must-Have) features are now implemented and functional. We have als
 
 The implementation of the advanced filtering feature (`FR-2.4`) was a complex multi-step process that revealed several critical "gotchas" about this specific Strapi API configuration. Documenting them is crucial for future development.
 
-1.  **The Big Issue: Inconsistent API Data Structures.**
-
-    - **Problem:** The Strapi API for this project returns data in two different formats:
-      - A **flat structure** for a list of items (e.g., `GET /api/product-types`).
-      - A **nested `attributes` structure** for a single item (e.g., `GET /api/product-types/1`).
-    - **Resolution:** The code was refactored to handle this duality, correctly parsing the flat structure for lists and the nested structure for single-item lookups.
-
-2.  **The Big Issue: The `findOne` Route (`/api/collection/:id`) is Inactive.**
-
-    - **Problem:** All attempts to fetch a single item using the standard `/:id` route failed with a `404 Not Found` error.
-    - **Resolution:** We adopted the project's established pattern of fetching a single item by using the `find` route with a filter, like `/api/product-types?filters[id][$eq]=1`. This workaround proved to be the key to unblocking the feature.
-
-3.  **The Big Issue: The Relational Filter Key Name.**
-
-    - **Problem:** When filtering `Products` by their `Product Type`, the API rejected several standard filter keys like `product` and `product[id]`.
-    - **Resolution:** The final, correct filter key was determined to be `product_type`, based on Strapi's convention of using the collection's name for the relation key.
-
-4.  **Final Architecture:** The most robust solution for the custom property search was a **hybrid approach**. The frontend makes a broad API call to get all products matching the keyword. Then, it uses **client-side JavaScript** to perform the fine-grained, partial, case-insensitive filtering on the custom properties. This provides the best user experience while working around the API's limitations.
+1.  **Inconsistent API Data Structures:** The Strapi API returns a **flat structure** for lists (`GET /api/product-types`) but a **nested `attributes` structure** for single items. Code was refactored to handle this duality.
+2.  **Inactive `findOne` Route:** The standard `/:id` route for single items failed. The established workaround is to use the `find` route with a filter, like `/api/product-types?filters[id][$eq]=1`.
+3.  **Relational Filter Key Name:** The correct filter key for the `Product Type` relation on `Products` was determined to be `product_type`.
+4.  **Final Architecture:** A hybrid approach was used for custom property search. The frontend makes a broad API call, then uses client-side JavaScript for fine-grained, case-insensitive filtering, providing the best user experience.
 
 ---
 
@@ -62,49 +48,50 @@ The implementation of the advanced filtering feature (`FR-2.4`) was a complex mu
 
 #### Delayed (Requires External Service Configuration)
 
-- **(NFR-5.1) Transactional Email Service:** The inquiry form currently only saves to the Strapi log. The logic to send a real email notification via a service like Resend is postponed until a sending domain is configured.
-- **(FR-2.3.1) Customer Inquiry Confirmation:** This is also part of the delayed email service implementation.
+- **(NFR-5.1) Transactional Email Service (P1):** The inquiry form currently only saves to the Strapi log. Logic to send a real email notification to the site administrator via a service like Resend is postponed until an API key and sending domain are configured.
+- **(FR-2.3.1) Customer Inquiry Confirmation (P2):** Sending a confirmation email to the customer is part of the same delayed email service implementation.
 
-#### Remaining Features
+#### Remaining Features (P3 - Nice-to-Have)
 
-- **(NFR-1.3) Accessibility (WCAG AA) (P2):** A full accessibility audit of all pages and components to ensure ARIA compliance and keyboard navigability.
-- **(NFR-6.1) Third-Party Analytics (P2):** Integration with a service like Google Analytics, which will be contingent on the choice made in the cookie banner.
-- **(FR-1.6) Product View Counts (P3):** A "nice-to-have" feature for the admin panel.
-- **(FR-2.5 & FR-2.6) Product Favoriting (P3):** A "nice-to-have" feature for customers to save products to a list in their browser.
+- **(FR-1.6) Product View Counts:** A simple view counter on each product page in the admin panel.
+- **(FR-2.5 & FR-2.6) Product Favoriting:** Allowing customers to save products to a list in their browser.
 
 ### Next Steps
 
-The next logical step is to address the remaining P2 requirement: **NFR-1.3 Accessibility (WCAG AA)**. This involves auditing the existing components and pages to improve semantic HTML, add necessary ARIA attributes, ensure keyboard navigation works flawlessly, and check color contrast. This is an excellent next step as it improves the quality of what has already been built without adding new features.
+The next and final major step is to complete the core user journey by addressing the delayed P1/P2 requirements: **NFR-5.1 and FR-2.3.1**. This involves integrating the **Resend** transactional email service to make the product inquiry system fully operational. The backend will be updated to send an email to the administrator and a confirmation to the customer upon a successful inquiry submission.
 
 ---
 
-## Project Structure (Updated)
+## Project Structure (Comprehensive)
 
 online-product-catalog/
 ├── backend/
 │ └── my-strapi-project/ # The Strapi v4 project
-│ ├── .env # Strapi environment variables (database, etc.)
-│ ├── config/ # Strapi configurations (database, plugins)
-│ ├── database/ # Local SQLite database file (if used)
+│ ├── .env # Strapi environment variables
+│ ├── config/ # Strapi configurations
+│ ├── database/
+│ │ └── data.db # Local SQLite database file
 │ ├── public/
 │ ├── src/
 │ │ └── api/ # Contains the collection types
-│ │ ├── product/
-│ │ ├── page/
 │ │ ├── inquiry/
+│ │ ├── page/
+│ │ ├── product/
 │ │ └── product-type/
-│ ├── node_modules/ # Dependencies (ignored by Git)
+│ ├── node_modules/
 │ └── package.json
 │
 ├── frontend/
-│ ├── .env.local
+│ ├── .env.local # Next.js env vars (STRAPI_URL, GA_ID, etc.)
+│ ├── public/ # Static assets
 │ ├── src/
 │ │ └── app/
-│ │ ├── [slug]/
+│ │ ├── [slug]/ # For static pages like /about-us
 │ │ │ └── page.tsx
 │ │ ├── components/
 │ │ │ ├── CookieConsentBanner.tsx
 │ │ │ ├── Footer.tsx
+│ │ │ ├── GoogleAnalytics.tsx
 │ │ │ ├── Header.tsx
 │ │ │ └── ProductInquiryForm.tsx
 │ │ ├── dashboard/
@@ -118,35 +105,55 @@ online-product-catalog/
 │ │ ├── search/
 │ │ │ └── page.tsx
 │ │ ├── globals.css
-│ │ ├── layout.tsx
-│ │ └── page.tsx
-│ └── ... (config files)
+│ │ ├── layout.tsx # Root Layout
+│ │ └── page.tsx # Homepage
+│ ├── next.config.mjs
+│ ├── package.json
+│ └── tsconfig.json
 │
-└── README.md
+├── .gitignore
+├── README.md # This file
+└── REQUIREMENTS.md # The original project specification
 
 ---
 
-## Continuity Plan for New AI Instance
+## Continuity Plan for New AI Instance (e.g., Gemini 2.5 Pro)
 
 To bring a new AI instance up to speed, provide the following:
 
-### 1. The High-Level Context (The "Why")
+### 1. High-Level Context (The "Why")
 
-1.  **The Original Project Specification:** The first document outlining all requirements.
-2.  **This `README.md` File:** This file contains the summary of what has been implemented, what remains, the overall project structure, and the critical "Post-Mortem" section detailing the specific behaviors of the Strapi API.
+1.  **The Project Specification:** The `REQUIREMENTS.md` file contains the original project requirements and technology stack.
+2.  **The Project Summary:** This `README.md` file contains the summary of what has been implemented, what remains, the overall project structure, and the critical "Post-Mortem" section detailing API behaviors.
 
-### 2. The Essential Code Files (The "What" and "How")
+### 2. Essential Files for Context (The "What" and "How")
 
-- **Backend Structure (Screenshots):** The screenshots of the `Product`, `Product Type`, and `Inquiry` Content-Type Builders are essential.
-- **Frontend Core Logic:**
-  - `frontend/src/app/page.tsx` (Homepage)
-  - `frontend/src/app/products/[id]/page.tsx` (Product Detail, **our key reference for fetching single items**)
-  - `frontend/src/app/search/page.tsx` (The fully implemented search/filter component)
-  - `frontend/src/app/dashboard/layout.tsx` & `page.tsx` (Admin Dashboard)
-  - `frontend/src/app/components/CookieConsentBanner.tsx`
+- **Backend Structure (Screenshots):** The screenshots of the `Product`, `Product Type`, and `Inquiry` Content-Type Builders in Strapi are essential.
+- **Environment Configuration (Example):** An example of the `frontend/.env.local` file.
+
+# Strapi API URL
+
+NEXT_PUBLIC_STRAPI_API_URL=http://127.0.0.1:1337
+
+# Dashboard Password
+
+DASHBOARD_PASSWORD=your_secure_password_here
+
+# Google Analytics ID
+
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+
+- **Frontend Core Logic (Code Files):**
+- `frontend/src/app/products/[id]/page.tsx` (Shows accessible image gallery and single-item fetch)
+- `frontend/src/app/search/page.tsx` (Shows complex, accessible forms and client-side filtering)
+- `frontend/src/app/dashboard/LoginForm.tsx` & `actions.ts` (Shows the full login flow with server actions)
+- `frontend/src/app/components/CookieConsentBanner.tsx` (Shows focus trapping and state refresh)
+- `frontend/src/app/components/GoogleAnalytics.tsx` (Shows conditional script loading)
 
 ### 3. How to Resume Work (The "What's Next")
 
 Your next prompt to the new AI would be:
 
-> "We have now implemented all P1 features and the Admin Dashboard. The next step is to address **NFR-1.3 Accessibility (WCAG AA)**. Let's start by auditing the **Product Details page** (`frontend/src/app/products/[id]/page.tsx`). Please review its code and suggest improvements for semantic HTML, ARIA roles, and keyboard accessibility, particularly for the image gallery."
+> "We have now implemented all P1 and P2 requirements except for the email service, which is a P1/P2 dependency. The next step is to address **NFR-5.1** and **FR-2.3.1** by integrating the Resend email service.
+>
+> Let's start by modifying the Strapi backend. We need to create a new custom API route that, when called by the frontend inquiry form, will first save the inquiry to the database and then use the Resend SDK to send two emails: one notification to the administrator and one confirmation to the customer. Please outline the steps and code needed to create this custom route in Strapi."
