@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-// --- Type Definitions (Updated to match your exact data structure) ---
+// --- Type Definitions (No changes) ---
 interface StrapiImage {
   id: number;
   url: string;
@@ -25,7 +25,6 @@ interface Product {
   Price: number;
   Images: StrapiImage[];
   CustomPropertyValues?: { [key: string]: string | number };
-  // --- FIX #1 --- Changed field name to match your API response
   Product?: ProductType;
 }
 interface CustomProperty {
@@ -36,7 +35,7 @@ interface CustomFilterValues {
   [key: string]: string;
 }
 
-// --- ProductCard Component (No changes needed) ---
+// --- ProductCard Component (No changes needed for this task) ---
 function ProductCard({ product }: { product: Product }) {
   const { Name, Price, Images } = product;
   const imageUrl = Images?.[0]?.url;
@@ -49,7 +48,7 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/products/${product.id}`}
-      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
     >
       <div className="relative h-56 w-full bg-gray-100">
         {imageUrl ? (
@@ -90,11 +89,16 @@ export default function SearchPage() {
   );
   const [customFilterValues, setCustomFilterValues] =
     useState<CustomFilterValues>({});
+  // ACCESSIBILITY: State for live announcements
+  const [statusMessage, setStatusMessage] = useState(
+    "Enter a keyword or select a type to search for products."
+  );
 
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
   useEffect(() => {
+    // Fetches product types on initial load
     const fetchProductTypes = async () => {
       try {
         const res = await fetch(`${strapiUrl}/api/product-types`);
@@ -108,6 +112,7 @@ export default function SearchPage() {
   }, [strapiUrl]);
 
   useEffect(() => {
+    // Fetches custom properties when a product type is selected
     if (!selectedType) {
       setCustomProperties([]);
       setCustomFilterValues({});
@@ -137,14 +142,14 @@ export default function SearchPage() {
     setLoading(true);
     setSearched(true);
     setResults([]);
+    // ACCESSIBILITY: Announce that the search has started
+    setStatusMessage("Searching for products...");
 
     const queryParams = new URLSearchParams();
     if (searchTerm.trim()) {
       queryParams.append("filters[Name][$containsi]", searchTerm.trim());
     }
-    // We populate everything to ensure we get the relation data
     queryParams.append("populate", "*");
-
     const apiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
 
     try {
@@ -154,17 +159,15 @@ export default function SearchPage() {
       const responseData = await res.json();
       let products: Product[] = responseData.data || [];
 
+      // Client-side filtering
       if (selectedType) {
-        // --- FIX #2 --- Change the filter logic to use the correct field name
         products = products.filter(
           (product) => product.Product?.id.toString() === selectedType
         );
       }
-
       const activeCustomFilters = Object.entries(customFilterValues).filter(
         ([, value]) => value.trim() !== ""
       );
-
       if (activeCustomFilters.length > 0) {
         products = products.filter((product) => {
           return activeCustomFilters.every(([key, value]) => {
@@ -178,30 +181,50 @@ export default function SearchPage() {
           });
         });
       }
-
       setResults(products);
+      // ACCESSIBILITY: Announce search results
+      setStatusMessage(
+        products.length > 0
+          ? `Found ${products.length} products.`
+          : "No products found for the selected criteria."
+      );
     } catch (error) {
       console.error(error);
       setResults([]);
+      setStatusMessage("An error occurred during the search.");
     } finally {
       setLoading(false);
     }
   };
 
+  const selectedTypeName =
+    productTypes.find((pt) => pt.id === parseInt(selectedType))?.Name || "";
+
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold mb-8 text-center">Search & Filter</h1>
+
+      {/* ACCESSIBILITY: Live region for announcements */}
+      <div role="status" className="sr-only">
+        {statusMessage}
+      </div>
+
       <form
         onSubmit={handleSearch}
         className="max-w-xl mx-auto mb-12 space-y-4"
       >
-        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden shadow-sm">
+        <div>
+          {/* ACCESSIBILITY: Added a label for the search input */}
+          <label htmlFor="search-keyword" className="sr-only">
+            Search by keyword
+          </label>
           <input
             type="text"
+            id="search-keyword"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by keyword..."
-            className="w-full px-4 py-2 border-none focus:ring-0"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         <div>
@@ -224,15 +247,11 @@ export default function SearchPage() {
         </div>
 
         {customProperties.length > 0 && (
-          <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-4">
-            <h3 className="font-semibold text-gray-700">
-              Filter by{" "}
-              {
-                productTypes.find((pt) => pt.id === parseInt(selectedType))
-                  ?.Name
-              }{" "}
-              Properties:
-            </h3>
+          // ACCESSIBILITY: Grouped related filters with fieldset and legend
+          <fieldset className="p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-4">
+            <legend className="font-semibold text-gray-700 px-1">
+              Filter by {selectedTypeName} Properties:
+            </legend>
             {customProperties.map((prop) => (
               <div key={prop.name}>
                 <label
@@ -255,20 +274,21 @@ export default function SearchPage() {
                 />
               </div>
             ))}
-          </div>
+          </fieldset>
         )}
 
         <div className="text-center">
           <button
             type="submit"
-            className="bg-indigo-600 text-white px-8 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+            className="bg-indigo-600 text-white px-8 py-2 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
           >
             Search
           </button>
         </div>
       </form>
 
-      <div>
+      {/* ACCESSIBILITY: aria-busy indicates the region is loading */}
+      <div aria-busy={loading}>
         {loading ? (
           <p className="text-center">Searching...</p>
         ) : searched ? (

@@ -1,10 +1,8 @@
+// frontend/src/app/page.tsx
 import Image from "next/image";
 import Link from "next/link";
 
-// =================================================================================
-// 1. TYPE DEFINITIONS - Written to perfectly match your API data
-// =================================================================================
-
+// ... (TYPE DEFINITIONS and getProducts function remain unchanged) ...
 interface StrapiImage {
   id: number;
   url: string;
@@ -12,8 +10,6 @@ interface StrapiImage {
   height: number;
   name: string;
 }
-
-// This is the one and only Product type we need. It matches your flat structure.
 interface Product {
   id: number;
   Name: string;
@@ -22,17 +18,10 @@ interface Product {
   Price: number;
   Images: StrapiImage[];
 }
-
-// =================================================================================
-// 2. DATA FETCHING FUNCTION - Simplified and Correct
-// =================================================================================
-
 async function getProducts(): Promise<Product[]> {
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
-  // The API endpoint is simple.
   const apiUrl = `${strapiUrl}/api/products?populate=Images`;
-
   try {
     const res = await fetch(apiUrl, { next: { revalidate: 60 } });
     if (!res.ok) {
@@ -40,8 +29,6 @@ async function getProducts(): Promise<Product[]> {
       return [];
     }
     const responseData = await res.json();
-
-    // The products are in the `data` property. Return that array, or an empty one if it doesn't exist.
     return responseData.data || [];
   } catch (error) {
     console.error("Error fetching products from Strapi:", error);
@@ -50,7 +37,7 @@ async function getProducts(): Promise<Product[]> {
 }
 
 // =================================================================================
-// 3. PRODUCT CARD COMPONENT (This component was already correct)
+// 3. PRODUCT CARD COMPONENT (UPDATED FOR ACCESSIBILITY)
 // =================================================================================
 
 function ProductCard({ product }: { product: Product }) {
@@ -67,7 +54,7 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/products/${product.id}`}
-      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
     >
       <div className="relative h-56 w-full">
         {imageUrl ? (
@@ -96,20 +83,14 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
-// =================================================================================
-// 4. HOME PAGE COMPONENT (Simplified to remove unnecessary validation)
-// =================================================================================
-
+// ... (HomePage component remains unchanged) ...
 export default async function HomePage() {
-  // Our getProducts function is now simple and reliable.
   const products = await getProducts();
-
   return (
     <main className="container mx-auto px-4 py-12">
       <h1 className="mb-10 text-center text-4xl font-bold tracking-tight text-gray-900">
         Our Latest Products
       </h1>
-
       {products.length > 0 ? (
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => (

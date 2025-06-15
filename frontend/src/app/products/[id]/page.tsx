@@ -1,14 +1,12 @@
+// path: frontend/src/app/products/[id]/page.tsx
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, KeyboardEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
 import ProductInquiryForm from "@/app/components/ProductInquiryForm";
-
-// =================================================================================
-// 1. TYPE DEFINITIONS
-// =================================================================================
 
 interface StrapiImage {
   id: number;
@@ -27,10 +25,6 @@ interface Product {
   Images: StrapiImage[];
 }
 
-// =================================================================================
-// 2. PRODUCT DETAIL PAGE COMPONENT
-// =================================================================================
-
 export default function ProductDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -39,6 +33,8 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<StrapiImage | null>(null);
+  const [announcement, setAnnouncement] = useState("");
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
@@ -49,15 +45,12 @@ export default function ProductDetailPage() {
     const fetchProduct = async () => {
       setLoading(true);
       setError(null);
-
       try {
         const apiUrl = `${strapiUrl}/api/products?filters[id][$eq]=${id}&populate=Images`;
         const res = await fetch(apiUrl);
-
         if (!res.ok) {
           throw new Error("Failed to fetch product data from the server");
         }
-
         const responseData = await res.json();
         const productObject = responseData.data?.[0];
 
@@ -70,13 +63,12 @@ export default function ProductDetailPage() {
 
         if (productObject.Images?.length > 0) {
           setSelectedImage(productObject.Images[0]);
+          thumbnailRefs.current = new Array(productObject.Images.length);
         }
       } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unknown error occurred");
-        }
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
       } finally {
         setLoading(false);
       }
@@ -84,6 +76,35 @@ export default function ProductDetailPage() {
 
     fetchProduct();
   }, [id, strapiUrl]);
+
+  const handleImageSelect = (image: StrapiImage, index: number) => {
+    setSelectedImage(image);
+    setAnnouncement(
+      `Now viewing Image ${index + 1} of ${product?.Images?.length}: ${
+        image.name
+      }`
+    );
+  };
+
+  const handleThumbnailKeyDown = (
+    e: KeyboardEvent<HTMLDivElement>,
+    currentIndex: number
+  ) => {
+    if (!product?.Images) return;
+    let nextIndex = currentIndex;
+    if (e.key === "ArrowRight") {
+      nextIndex = (currentIndex + 1) % product.Images.length;
+    } else if (e.key === "ArrowLeft") {
+      nextIndex =
+        (currentIndex - 1 + product.Images.length) % product.Images.length;
+    } else {
+      return;
+    }
+    e.preventDefault();
+    const nextImage = product.Images[nextIndex];
+    handleImageSelect(nextImage, nextIndex);
+    thumbnailRefs.current[nextIndex]?.focus();
+  };
 
   if (loading)
     return (
@@ -104,17 +125,29 @@ export default function ProductDetailPage() {
     style: "currency",
     currency: "USD",
   });
+  const selectedImageIndex = Images?.findIndex(
+    (img) => img.id === selectedImage?.id
+  );
 
   return (
     <main className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <div aria-live="polite" className="sr-only">
+        {announcement}
+      </div>
       <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
-        {/* Image Gallery Section */}
         <div>
-          <div className="aspect-square relative mb-4 overflow-hidden rounded-lg border bg-gray-100">
+          <div
+            role="tabpanel"
+            id="gallery-tabpanel"
+            aria-labelledby={`gallery-tab-${selectedImage?.id}`}
+            className="aspect-square relative mb-4 overflow-hidden rounded-lg border bg-gray-100"
+          >
             {selectedImage ? (
               <Image
                 src={`${strapiUrl}${selectedImage.url}`}
-                alt={selectedImage.name}
+                alt={`${Name} - View ${(selectedImageIndex ?? 0) + 1} of ${
+                  Images.length
+                }`}
                 fill
                 className="object-contain"
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -126,29 +159,42 @@ export default function ProductDetailPage() {
               </div>
             )}
           </div>
-          <div className="flex space-x-2">
-            {Images?.map((img) => (
+          <div
+            role="tablist"
+            aria-label="Product image thumbnails"
+            className="flex space-x-2"
+            onKeyDown={(e) =>
+              handleThumbnailKeyDown(e, selectedImageIndex ?? 0)
+            }
+          >
+            {Images?.map((img, index) => (
               <button
                 key={img.id}
-                onClick={() => setSelectedImage(img)}
+                role="tab"
+                id={`gallery-tab-${img.id}`}
+                aria-controls="gallery-tabpanel"
+                aria-selected={selectedImage?.id === img.id}
+                tabIndex={selectedImage?.id === img.id ? 0 : -1}
+                ref={(el) => {
+                  thumbnailRefs.current[index] = el;
+                }}
+                onClick={() => handleImageSelect(img, index)}
                 className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
                   selectedImage?.id === img.id
                     ? "border-blue-500"
                     : "border-transparent hover:border-gray-400"
-                }`}
+                } focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}
               >
-                {" "}
                 <Image
                   src={`${strapiUrl}${img.url}`}
-                  alt={img.name}
+                  alt={`View Image ${index + 1}`}
                   fill
                   className="object-cover"
-                />{" "}
+                />
               </button>
             ))}
           </div>
         </div>
-        {/* Product Details Section */}
         <div>
           <h1 className="text-4xl font-bold tracking-tight text-gray-900">
             {Name}
@@ -157,12 +203,19 @@ export default function ProductDetailPage() {
             {priceFormatter.format(Price)}
           </p>
           <div className="mt-6">
-            <h2 className="text-lg font-medium text-gray-900">Description</h2>
-            <p className="mt-2 text-base text-gray-600 whitespace-pre-wrap">
+            <h2
+              id="description-heading"
+              className="text-lg font-medium text-gray-900"
+            >
+              Description
+            </h2>
+            <p
+              aria-labelledby="description-heading"
+              className="mt-2 text-base text-gray-600 whitespace-pre-wrap"
+            >
               {Description}
             </p>
           </div>
-          {/* Inquiry Form Integration */}
           <div className="mt-10 border-t pt-10">
             <h3 className="text-xl font-semibold mb-4">
               Interested in this product?
@@ -174,7 +227,7 @@ export default function ProductDetailPage() {
           </div>
           <Link
             href="/"
-            className="mt-10 inline-block text-blue-600 hover:underline"
+            className="mt-10 inline-block text-blue-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-sm"
           >
             ← Back to all products
           </Link>

@@ -2,23 +2,29 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const PASSWORD_COOKIE = "dashboard_password";
 
-export async function login(formData: FormData) {
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData
+) {
   const password = formData.get("password");
 
   if (password === process.env.DASHBOARD_PASSWORD) {
-    // --- THE FIX ---
-    // We must await the cookies() function to get the store object.
-    (await cookies()).set(PASSWORD_COOKIE, password, {
+    // --- THE CORRECT FIX ---
+    // The cookies() function returns a Promise. We MUST await it before
+    // calling the .set() method on the resolved cookie store.
+    (await cookies()).set(PASSWORD_COOKIE, password as string, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24,
+      maxAge: 60 * 60 * 24, // 24 hours
       path: "/",
     });
-    return { success: true, error: null };
+
+    redirect("/dashboard");
   } else {
-    return { success: false, error: "Incorrect password." };
+    return "Incorrect password. Please try again.";
   }
 }
