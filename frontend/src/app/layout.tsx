@@ -1,8 +1,12 @@
+// frontend/src/app/layout.tsx
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/app/components/Header"; // We will create this next
-import Footer from "@/app/components/Footer"; // And this one too
+import Header from "@/app/components/Header";
+import Footer from "@/app/components/Footer";
+// Import the new banner component
+import CookieConsentBanner from "@/app/components/CookieConsentBanner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +28,8 @@ export default function RootLayout({
           <main className="flex-grow">{children}</main>
           <Footer />
         </div>
+        {/* Add the Cookie Consent Banner here */}
+        <CookieConsentBanner />
       </body>
     </html>
   );

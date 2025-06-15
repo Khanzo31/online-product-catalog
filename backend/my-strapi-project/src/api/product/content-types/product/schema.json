@@ -37,6 +37,9 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::product-type.product-type"
+    },
+    "CustomPropertyValues": {
+      "type": "json"
     }
   }
 }

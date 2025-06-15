@@ -4,13 +4,18 @@ import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-// --- Type Definitions ---
+// --- Type Definitions (Updated to match your exact data structure) ---
 interface StrapiImage {
   id: number;
   url: string;
   width: number;
   height: number;
   name: string;
+}
+interface ProductType {
+  id: number;
+  Name: string;
+  CustomProperties?: CustomProperty[];
 }
 interface Product {
   id: number;
@@ -19,13 +24,19 @@ interface Product {
   Description: string;
   Price: number;
   Images: StrapiImage[];
+  CustomPropertyValues?: { [key: string]: string | number };
+  // --- FIX #1 --- Changed field name to match your API response
+  Product?: ProductType;
 }
-interface ProductType {
-  id: number;
-  Name: string;
+interface CustomProperty {
+  name: string;
+  type: "text" | "number" | "boolean";
+}
+interface CustomFilterValues {
+  [key: string]: string;
 }
 
-// --- ProductCard Component ---
+// --- ProductCard Component (No changes needed) ---
 function ProductCard({ product }: { product: Product }) {
   const { Name, Price, Images } = product;
   const imageUrl = Images?.[0]?.url;
@@ -74,6 +85,11 @@ export default function SearchPage() {
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [customProperties, setCustomProperties] = useState<CustomProperty[]>(
+    []
+  );
+  const [customFilterValues, setCustomFilterValues] =
+    useState<CustomFilterValues>({});
 
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
@@ -91,6 +107,31 @@ export default function SearchPage() {
     fetchProductTypes();
   }, [strapiUrl]);
 
+  useEffect(() => {
+    if (!selectedType) {
+      setCustomProperties([]);
+      setCustomFilterValues({});
+      return;
+    }
+    const fetchCustomProperties = async () => {
+      try {
+        const apiUrl = `${strapiUrl}/api/product-types?filters[id][$eq]=${selectedType}&populate=*`;
+        const res = await fetch(apiUrl);
+        if (!res.ok)
+          throw new Error(`API call failed with status: ${res.status}`);
+        const responseData = await res.json();
+        const singleTypeData = responseData.data?.[0];
+        const properties = singleTypeData?.CustomProperties || [];
+        setCustomProperties(properties);
+        setCustomFilterValues({});
+      } catch (error) {
+        console.error("Failed to fetch custom properties:", error);
+        setCustomProperties([]);
+      }
+    };
+    fetchCustomProperties();
+  }, [selectedType, strapiUrl]);
+
   const handleSearch = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
@@ -101,25 +142,44 @@ export default function SearchPage() {
     if (searchTerm.trim()) {
       queryParams.append("filters[Name][$containsi]", searchTerm.trim());
     }
-    if (selectedType) {
-      // --- THE DEFINITIVE FIX ---
-      // The field name is "Product" with a capital P, as shown in your screenshot.
-      queryParams.append("filters[Product][id][$eq]", selectedType);
-    }
-    queryParams.append("populate", "Images");
+    // We populate everything to ensure we get the relation data
+    queryParams.append("populate", "*");
 
     const apiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
 
     try {
       const res = await fetch(apiUrl);
-      if (!res.ok) {
-        // Log the URL for debugging if it fails
-        console.error("Search API call failed with URL:", apiUrl);
-        throw new Error("Search failed");
-      }
+      if (!res.ok) throw new Error("API call to fetch products failed");
 
       const responseData = await res.json();
-      setResults(responseData.data || []);
+      let products: Product[] = responseData.data || [];
+
+      if (selectedType) {
+        // --- FIX #2 --- Change the filter logic to use the correct field name
+        products = products.filter(
+          (product) => product.Product?.id.toString() === selectedType
+        );
+      }
+
+      const activeCustomFilters = Object.entries(customFilterValues).filter(
+        ([, value]) => value.trim() !== ""
+      );
+
+      if (activeCustomFilters.length > 0) {
+        products = products.filter((product) => {
+          return activeCustomFilters.every(([key, value]) => {
+            const productValue = product.CustomPropertyValues?.[key];
+            if (productValue === null || productValue === undefined)
+              return false;
+            return productValue
+              .toString()
+              .toLowerCase()
+              .includes(value.trim().toLowerCase());
+          });
+        });
+      }
+
+      setResults(products);
     } catch (error) {
       console.error(error);
       setResults([]);
@@ -162,6 +222,42 @@ export default function SearchPage() {
             ))}
           </select>
         </div>
+
+        {customProperties.length > 0 && (
+          <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-4">
+            <h3 className="font-semibold text-gray-700">
+              Filter by{" "}
+              {
+                productTypes.find((pt) => pt.id === parseInt(selectedType))
+                  ?.Name
+              }{" "}
+              Properties:
+            </h3>
+            {customProperties.map((prop) => (
+              <div key={prop.name}>
+                <label
+                  htmlFor={`prop-${prop.name}`}
+                  className="block text-sm font-medium text-gray-600 mb-1"
+                >
+                  {prop.name}
+                </label>
+                <input
+                  type={prop.type}
+                  id={`prop-${prop.name}`}
+                  value={customFilterValues[prop.name] || ""}
+                  onChange={(e) =>
+                    setCustomFilterValues((prev) => ({
+                      ...prev,
+                      [prop.name]: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="text-center">
           <button
             type="submit"
@@ -171,6 +267,7 @@ export default function SearchPage() {
           </button>
         </div>
       </form>
+
       <div>
         {loading ? (
           <p className="text-center">Searching...</p>
