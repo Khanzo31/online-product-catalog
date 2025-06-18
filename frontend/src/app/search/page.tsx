@@ -35,7 +35,7 @@ interface CustomFilterValues {
   [key: string]: string;
 }
 
-// --- ProductCard Component (No changes needed for this task) ---
+// --- ProductCard Component (No changes) ---
 function ProductCard({ product }: { product: Product }) {
   const { Name, Price, Images } = product;
   const imageUrl = Images?.[0]?.url;
@@ -89,7 +89,6 @@ export default function SearchPage() {
   );
   const [customFilterValues, setCustomFilterValues] =
     useState<CustomFilterValues>({});
-  // ACCESSIBILITY: State for live announcements
   const [statusMessage, setStatusMessage] = useState(
     "Enter a keyword or select a type to search for products."
   );
@@ -98,7 +97,6 @@ export default function SearchPage() {
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
   useEffect(() => {
-    // Fetches product types on initial load
     const fetchProductTypes = async () => {
       try {
         const res = await fetch(`${strapiUrl}/api/product-types`);
@@ -112,7 +110,6 @@ export default function SearchPage() {
   }, [strapiUrl]);
 
   useEffect(() => {
-    // Fetches custom properties when a product type is selected
     if (!selectedType) {
       setCustomProperties([]);
       setCustomFilterValues({});
@@ -137,29 +134,53 @@ export default function SearchPage() {
     fetchCustomProperties();
   }, [selectedType, strapiUrl]);
 
+  // =========================================================================
+  // === UPDATED handleSearch FUNCTION WITH RESILIENT FETCH LOGIC ===
+  // =========================================================================
   const handleSearch = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
     setSearched(true);
     setResults([]);
-    // ACCESSIBILITY: Announce that the search has started
     setStatusMessage("Searching for products...");
 
+    // Build base query parameters
     const queryParams = new URLSearchParams();
     if (searchTerm.trim()) {
       queryParams.append("filters[Name][$containsi]", searchTerm.trim());
     }
-    queryParams.append("populate", "*");
-    const apiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
+
+    // Define ideal and fallback API URLs
+    const idealApiUrl = `${strapiUrl}/api/products?${queryParams.toString()}&populate=*`;
+    const fallbackApiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
 
     try {
-      const res = await fetch(apiUrl);
-      if (!res.ok) throw new Error("API call to fetch products failed");
+      let res = await fetch(idealApiUrl);
+
+      // Check for failure and apply fallback logic if it's a "Bad Request"
+      if (!res.ok) {
+        if (res.status === 400) {
+          console.warn(
+            'handleSearch: Received "Bad Request". Retrying without populate.'
+          );
+          res = await fetch(fallbackApiUrl); // Retry with the simpler URL
+
+          if (!res.ok) {
+            // If even the fallback fails, throw an error
+            throw new Error(
+              `Fallback API call also failed with status: ${res.statusText}`
+            );
+          }
+        } else {
+          // For other errors (500, 404, etc.), throw immediately
+          throw new Error(`API call failed with status: ${res.statusText}`);
+        }
+      }
 
       const responseData = await res.json();
       let products: Product[] = responseData.data || [];
 
-      // Client-side filtering
+      // Client-side filtering (remains the same)
       if (selectedType) {
         products = products.filter(
           (product) => product.Product?.id.toString() === selectedType
@@ -182,7 +203,6 @@ export default function SearchPage() {
         });
       }
       setResults(products);
-      // ACCESSIBILITY: Announce search results
       setStatusMessage(
         products.length > 0
           ? `Found ${products.length} products.`
@@ -196,6 +216,9 @@ export default function SearchPage() {
       setLoading(false);
     }
   };
+  // =========================================================================
+  // === END OF UPDATED FUNCTION ===
+  // =========================================================================
 
   const selectedTypeName =
     productTypes.find((pt) => pt.id === parseInt(selectedType))?.Name || "";
@@ -204,7 +227,6 @@ export default function SearchPage() {
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold mb-8 text-center">Search & Filter</h1>
 
-      {/* ACCESSIBILITY: Live region for announcements */}
       <div role="status" className="sr-only">
         {statusMessage}
       </div>
@@ -214,7 +236,6 @@ export default function SearchPage() {
         className="max-w-xl mx-auto mb-12 space-y-4"
       >
         <div>
-          {/* ACCESSIBILITY: Added a label for the search input */}
           <label htmlFor="search-keyword" className="sr-only">
             Search by keyword
           </label>
@@ -247,7 +268,6 @@ export default function SearchPage() {
         </div>
 
         {customProperties.length > 0 && (
-          // ACCESSIBILITY: Grouped related filters with fieldset and legend
           <fieldset className="p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-4">
             <legend className="font-semibold text-gray-700 px-1">
               Filter by {selectedTypeName} Properties:
@@ -287,7 +307,6 @@ export default function SearchPage() {
         </div>
       </form>
 
-      {/* ACCESSIBILITY: aria-busy indicates the region is loading */}
       <div aria-busy={loading}>
         {loading ? (
           <p className="text-center">Searching...</p>

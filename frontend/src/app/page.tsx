@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-// ... (TYPE DEFINITIONS and getProducts function remain unchanged) ...
+// --- TYPE DEFINITIONS ---
 interface StrapiImage {
   id: number;
   url: string;
@@ -18,28 +18,56 @@ interface Product {
   Price: number;
   Images: StrapiImage[];
 }
+
+// --- UPDATED DATA FETCHING FUNCTION ---
+// This function is now resilient to the "Bad Request" error on empty collections.
 async function getProducts(): Promise<Product[]> {
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
-  const apiUrl = `${strapiUrl}/api/products?populate=Images`;
+
+  // 1. We start by trying the ideal, efficient API call with populated images.
+  const idealApiUrl = `${strapiUrl}/api/products?populate=Images`;
+
   try {
-    const res = await fetch(apiUrl, { next: { revalidate: 60 } });
+    let res = await fetch(idealApiUrl, { next: { revalidate: 60 } });
+
+    // 2. Check if the first attempt failed.
     if (!res.ok) {
-      console.error("Failed to fetch products:", res.statusText);
-      return [];
+      // 3. If the failure is a "Bad Request" (status 400), we suspect it's our known issue.
+      if (res.status === 400) {
+        console.warn(
+          'getProducts: Received "Bad Request". This might be due to populating an empty collection. Retrying without populate.'
+        );
+        // 4. We attempt a fallback API call without the `populate` parameter.
+        const fallbackApiUrl = `${strapiUrl}/api/products`;
+        res = await fetch(fallbackApiUrl, { next: { revalidate: 60 } });
+
+        // If even the fallback fails, we give up.
+        if (!res.ok) {
+          console.error(
+            "Failed to fetch products on fallback:",
+            res.statusText
+          );
+          return [];
+        }
+      } else {
+        // 5. If it's a different error (like 500, 404, etc.), we log it and fail gracefully.
+        console.error("Failed to fetch products:", res.statusText);
+        return [];
+      }
     }
+
+    // 6. Whether the original or fallback call succeeded, we process the JSON.
     const responseData = await res.json();
     return responseData.data || [];
   } catch (error) {
+    // This catches network errors or other issues with the fetch itself.
     console.error("Error fetching products from Strapi:", error);
     return [];
   }
 }
 
-// =================================================================================
-// 3. PRODUCT CARD COMPONENT (UPDATED FOR ACCESSIBILITY)
-// =================================================================================
-
+// --- PRODUCT CARD COMPONENT ---
 function ProductCard({ product }: { product: Product }) {
   const { Name, Price, Images } = product;
   const imageUrl = Images?.[0]?.url;
@@ -83,7 +111,7 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
-// ... (HomePage component remains unchanged) ...
+// --- HOME PAGE COMPONENT ---
 export default async function HomePage() {
   const products = await getProducts();
   return (
