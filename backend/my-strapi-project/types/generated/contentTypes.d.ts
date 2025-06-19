@@ -396,7 +396,7 @@ export interface ApiInquiryInquiry extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     Message: Schema.Attribute.Text;
-    product: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
+    Product: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-// --- Type Definitions (No changes) ---
+// --- Type Definitions ---
 interface StrapiImage {
   id: number;
   url: string;
@@ -14,11 +14,13 @@ interface StrapiImage {
 }
 interface ProductType {
   id: number;
+  documentId: string; // Add documentId
   Name: string;
   CustomProperties?: CustomProperty[];
 }
 interface Product {
   id: number;
+  documentId: string; // Add documentId
   Name: string;
   SKU: string;
   Description: string;
@@ -35,19 +37,20 @@ interface CustomFilterValues {
   [key: string]: string;
 }
 
-// --- ProductCard Component (No changes) ---
+// --- ProductCard Component ---
 function ProductCard({ product }: { product: Product }) {
-  const { Name, Price, Images } = product;
+  const { documentId, Name, Price, Images } = product;
   const imageUrl = Images?.[0]?.url;
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "CAD", // UPDATED CURRENCY
   });
   return (
+    // CRITICAL FIX: The link now uses the documentId
     <Link
-      href={`/products/${product.id}`}
+      href={`/products/${documentId}`}
       className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
     >
       <div className="relative h-56 w-full bg-gray-100">
@@ -97,6 +100,7 @@ export default function SearchPage() {
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
   useEffect(() => {
+    // Fetches product types on initial load
     const fetchProductTypes = async () => {
       try {
         const res = await fetch(`${strapiUrl}/api/product-types`);
@@ -110,6 +114,7 @@ export default function SearchPage() {
   }, [strapiUrl]);
 
   useEffect(() => {
+    // Fetches custom properties when a product type is selected
     if (!selectedType) {
       setCustomProperties([]);
       setCustomFilterValues({});
@@ -117,8 +122,10 @@ export default function SearchPage() {
     }
     const fetchCustomProperties = async () => {
       try {
-        const apiUrl = `${strapiUrl}/api/product-types?filters[id][$eq]=${selectedType}&populate=*`;
-        const res = await fetch(apiUrl);
+        // Using the filter that works with documentId for consistency
+        const res = await fetch(
+          `${strapiUrl}/api/product-types?filters[documentId][$eq]=${selectedType}&populate=*`
+        );
         if (!res.ok)
           throw new Error(`API call failed with status: ${res.status}`);
         const responseData = await res.json();
@@ -134,9 +141,6 @@ export default function SearchPage() {
     fetchCustomProperties();
   }, [selectedType, strapiUrl]);
 
-  // =========================================================================
-  // === UPDATED handleSearch FUNCTION WITH RESILIENT FETCH LOGIC ===
-  // =========================================================================
   const handleSearch = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
@@ -144,46 +148,24 @@ export default function SearchPage() {
     setResults([]);
     setStatusMessage("Searching for products...");
 
-    // Build base query parameters
     const queryParams = new URLSearchParams();
     if (searchTerm.trim()) {
       queryParams.append("filters[Name][$containsi]", searchTerm.trim());
     }
-
-    // Define ideal and fallback API URLs
-    const idealApiUrl = `${strapiUrl}/api/products?${queryParams.toString()}&populate=*`;
-    const fallbackApiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
+    queryParams.append("populate", "*");
+    const apiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
 
     try {
-      let res = await fetch(idealApiUrl);
-
-      // Check for failure and apply fallback logic if it's a "Bad Request"
-      if (!res.ok) {
-        if (res.status === 400) {
-          console.warn(
-            'handleSearch: Received "Bad Request". Retrying without populate.'
-          );
-          res = await fetch(fallbackApiUrl); // Retry with the simpler URL
-
-          if (!res.ok) {
-            // If even the fallback fails, throw an error
-            throw new Error(
-              `Fallback API call also failed with status: ${res.statusText}`
-            );
-          }
-        } else {
-          // For other errors (500, 404, etc.), throw immediately
-          throw new Error(`API call failed with status: ${res.statusText}`);
-        }
-      }
+      const res = await fetch(apiUrl);
+      if (!res.ok) throw new Error("API call to fetch products failed");
 
       const responseData = await res.json();
       let products: Product[] = responseData.data || [];
 
-      // Client-side filtering (remains the same)
+      // Client-side filtering
       if (selectedType) {
         products = products.filter(
-          (product) => product.Product?.id.toString() === selectedType
+          (product) => product.Product?.documentId === selectedType
         );
       }
       const activeCustomFilters = Object.entries(customFilterValues).filter(
@@ -216,12 +198,9 @@ export default function SearchPage() {
       setLoading(false);
     }
   };
-  // =========================================================================
-  // === END OF UPDATED FUNCTION ===
-  // =========================================================================
 
   const selectedTypeName =
-    productTypes.find((pt) => pt.id === parseInt(selectedType))?.Name || "";
+    productTypes.find((pt) => pt.documentId === selectedType)?.Name || "";
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -260,7 +239,7 @@ export default function SearchPage() {
           >
             <option value="">All Product Types</option>
             {productTypes.map((type) => (
-              <option key={type.id} value={type.id}>
+              <option key={type.id} value={type.documentId}>
                 {type.Name}
               </option>
             ))}

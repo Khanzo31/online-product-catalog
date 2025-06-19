@@ -20,21 +20,26 @@
     "Description": {
       "type": "richtext"
     },
+    "Price": {
+      "type": "decimal"
+    },
     "Images": {
       "type": "media",
       "multiple": true,
-      "allowedTypes": ["images", "files", "videos", "audios"]
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     },
-    "Price": {
-      "type": "decimal"
+    "CustomPropertyValues": {
+      "type": "json"
     },
     "Product": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::product-type.product-type"
-    },
-    "CustomPropertyValues": {
-      "type": "json"
     }
   }
 }

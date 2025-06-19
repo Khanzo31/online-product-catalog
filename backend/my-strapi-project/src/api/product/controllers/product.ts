@@ -1,3 +1,5 @@
+// path: backend/my-strapi-project/src/api/product/controllers/product.ts
+
 /**
  * product controller
  */

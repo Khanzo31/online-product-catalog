@@ -1,7 +1,10 @@
+// path: backend/my-strapi-project/src/api/product/services/product.ts
+
 /**
- * product-type service
+ * product service
  */
 
 import { factories } from "@strapi/strapi";
 
-export default factories.createCoreService("api::product-type.product-type");
+// This correctly points the service to its own API.
+export default factories.createCoreService("api::product.product");

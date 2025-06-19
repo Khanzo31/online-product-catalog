@@ -2,8 +2,10 @@
 
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { authenticate } from "@/app/dashboard/actions"; // Assuming this action will be created
+// --- FIX: Import hooks from their correct libraries ---
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { authenticate } from "@/app/dashboard/actions";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -19,7 +21,7 @@ function SubmitButton() {
 }
 
 export default function LoginForm() {
-  const [errorMessage, dispatch] = useFormState(authenticate, undefined);
+  const [errorMessage, dispatch] = useActionState(authenticate, undefined);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

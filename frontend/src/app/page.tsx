@@ -12,91 +12,61 @@ interface StrapiImage {
 }
 interface Product {
   id: number;
+  documentId: string;
   Name: string;
-  SKU: string;
-  Description: string;
   Price: number;
   Images: StrapiImage[];
 }
 
-// --- UPDATED DATA FETCHING FUNCTION ---
-// This function is now resilient to the "Bad Request" error on empty collections.
+// --- DATA FETCHING FUNCTION ---
 async function getProducts(): Promise<Product[]> {
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
-
-  // 1. We start by trying the ideal, efficient API call with populated images.
-  const idealApiUrl = `${strapiUrl}/api/products?populate=Images`;
+  const apiUrl = `${strapiUrl}/api/products?populate=*`;
 
   try {
-    let res = await fetch(idealApiUrl, { next: { revalidate: 60 } });
-
-    // 2. Check if the first attempt failed.
+    const res = await fetch(apiUrl, { cache: "no-store" });
     if (!res.ok) {
-      // 3. If the failure is a "Bad Request" (status 400), we suspect it's our known issue.
-      if (res.status === 400) {
-        console.warn(
-          'getProducts: Received "Bad Request". This might be due to populating an empty collection. Retrying without populate.'
-        );
-        // 4. We attempt a fallback API call without the `populate` parameter.
-        const fallbackApiUrl = `${strapiUrl}/api/products`;
-        res = await fetch(fallbackApiUrl, { next: { revalidate: 60 } });
-
-        // If even the fallback fails, we give up.
-        if (!res.ok) {
-          console.error(
-            "Failed to fetch products on fallback:",
-            res.statusText
-          );
-          return [];
-        }
-      } else {
-        // 5. If it's a different error (like 500, 404, etc.), we log it and fail gracefully.
-        console.error("Failed to fetch products:", res.statusText);
-        return [];
-      }
+      console.error(
+        `Failed to fetch from ${apiUrl}:`,
+        res.status,
+        res.statusText
+      );
+      return [];
     }
-
-    // 6. Whether the original or fallback call succeeded, we process the JSON.
     const responseData = await res.json();
     return responseData.data || [];
   } catch (error) {
-    // This catches network errors or other issues with the fetch itself.
-    console.error("Error fetching products from Strapi:", error);
+    console.error("Critical error fetching products:", error);
     return [];
   }
 }
 
 // --- PRODUCT CARD COMPONENT ---
 function ProductCard({ product }: { product: Product }) {
-  const { Name, Price, Images } = product;
+  const { documentId, Name, Price, Images } = product;
   const imageUrl = Images?.[0]?.url;
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
-
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "CAD", // UPDATED CURRENCY
   });
-
   return (
     <Link
-      href={`/products/${product.id}`}
-      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      href={`/products/${documentId}`}
+      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm"
     >
-      <div className="relative h-56 w-full">
+      <div className="relative h-56 w-full flex items-center justify-center bg-gray-200">
         {imageUrl ? (
           <Image
             src={`${strapiUrl}${imageUrl}`}
             alt={Name || "Product Image"}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gray-200">
-            <span className="text-gray-500">No Image</span>
-          </div>
+          <span className="text-gray-500">No Image</span>
         )}
       </div>
       <div className="bg-white p-4">
@@ -104,7 +74,7 @@ function ProductCard({ product }: { product: Product }) {
           {Name || "Untitled Product"}
         </h3>
         <p className="mt-1 text-md font-medium text-gray-600">
-          {priceFormatter.format(Price)}
+          {priceFormatter.format(Price || 0)}
         </p>
       </div>
     </Link>

@@ -1,13 +1,11 @@
-// path: frontend/src/app/products/[id]/page.tsx
-
 "use client";
-
 import { useState, useEffect, useRef, KeyboardEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
 import ProductInquiryForm from "@/app/components/ProductInquiryForm";
 
+// --- TYPE DEFINITIONS ---
 interface StrapiImage {
   id: number;
   url: string;
@@ -23,36 +21,39 @@ interface Product {
   Description: string;
   Price: number;
   Images: StrapiImage[];
+  CustomPropertyValues?: { [key: string]: string | number };
 }
 
+// --- PRODUCT DETAIL PAGE COMPONENT ---
 export default function ProductDetailPage() {
   const params = useParams();
-  const id = params.id as string;
-
+  const documentId = params.documentId as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<StrapiImage | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
   useEffect(() => {
-    if (!id) return;
+    if (!documentId) return;
 
     const fetchProduct = async () => {
       setLoading(true);
       setError(null);
       try {
-        const apiUrl = `${strapiUrl}/api/products?filters[id][$eq]=${id}&populate=Images`;
+        const apiUrl = `${strapiUrl}/api/products?filters[documentId][$eq]=${documentId}&populate=*`;
         const res = await fetch(apiUrl);
+
         if (!res.ok) {
-          throw new Error("Failed to fetch product data from the server");
+          if (res.status === 404) notFound();
+          throw new Error("Failed to fetch product data");
         }
+
         const responseData = await res.json();
-        const productObject = responseData.data?.[0];
+        const productObject: Product | null = responseData.data?.[0] || null;
 
         if (!productObject) {
           notFound();
@@ -60,7 +61,6 @@ export default function ProductDetailPage() {
         }
 
         setProduct(productObject);
-
         if (productObject.Images?.length > 0) {
           setSelectedImage(productObject.Images[0]);
           thumbnailRefs.current = new Array(productObject.Images.length);
@@ -73,9 +73,8 @@ export default function ProductDetailPage() {
         setLoading(false);
       }
     };
-
     fetchProduct();
-  }, [id, strapiUrl]);
+  }, [documentId, strapiUrl]);
 
   const handleImageSelect = (image: StrapiImage, index: number) => {
     setSelectedImage(image);
@@ -123,7 +122,7 @@ export default function ProductDetailPage() {
   const { Name, Price, Description, Images } = product;
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "CAD", // UPDATED CURRENCY
   });
   const selectedImageIndex = Images?.findIndex(
     (img) => img.id === selectedImage?.id
@@ -221,7 +220,7 @@ export default function ProductDetailPage() {
               Interested in this product?
             </h3>
             <ProductInquiryForm
-              productId={product.id}
+              productId={documentId}
               productName={product.Name}
             />
           </div>

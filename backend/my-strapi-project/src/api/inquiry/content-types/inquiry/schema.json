@@ -20,7 +20,7 @@
     "Message": {
       "type": "text"
     },
-    "product": {
+    "Product": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::product.product"
