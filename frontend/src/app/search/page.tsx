@@ -14,13 +14,13 @@ interface StrapiImage {
 }
 interface ProductType {
   id: number;
-  documentId: string; // Add documentId
+  documentId: string;
   Name: string;
   CustomProperties?: CustomProperty[];
 }
 interface Product {
   id: number;
-  documentId: string; // Add documentId
+  documentId: string;
   Name: string;
   SKU: string;
   Description: string;
@@ -45,10 +45,9 @@ function ProductCard({ product }: { product: Product }) {
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "CAD", // UPDATED CURRENCY
+    currency: "CAD",
   });
   return (
-    // CRITICAL FIX: The link now uses the documentId
     <Link
       href={`/products/${documentId}`}
       className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
@@ -122,7 +121,6 @@ export default function SearchPage() {
     }
     const fetchCustomProperties = async () => {
       try {
-        // Using the filter that works with documentId for consistency
         const res = await fetch(
           `${strapiUrl}/api/product-types?filters[documentId][$eq]=${selectedType}&populate=*`
         );
@@ -153,6 +151,9 @@ export default function SearchPage() {
       queryParams.append("filters[Name][$containsi]", searchTerm.trim());
     }
     queryParams.append("populate", "*");
+    // FIX: Add sorting by creation date to ensure a consistent order
+    queryParams.append("sort", "createdAt:desc");
+
     const apiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
 
     try {

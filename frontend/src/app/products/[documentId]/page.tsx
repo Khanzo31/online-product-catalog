@@ -1,11 +1,14 @@
+// frontend/src/app/products/[documentId]/page.tsx
+
 "use client";
 import { useState, useEffect, useRef, KeyboardEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
 import ProductInquiryForm from "@/app/components/ProductInquiryForm";
+import { useFavorites } from "@/app/context/FavoritesContext";
 
-// --- TYPE DEFINITIONS ---
+// --- TYPE DEFINITIONS (from your original working file) ---
 interface StrapiImage {
   id: number;
   url: string;
@@ -36,6 +39,9 @@ export default function ProductDetailPage() {
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
+
+  // Initialize the favorites context
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
   useEffect(() => {
     if (!documentId) return;
@@ -75,6 +81,39 @@ export default function ProductDetailPage() {
     };
     fetchProduct();
   }, [documentId, strapiUrl]);
+
+  useEffect(() => {
+    if (product && product.id) {
+      const increment = async () => {
+        try {
+          await fetch(
+            `${strapiUrl}/api/products/${product.id}/increment-view`,
+            {
+              method: "POST",
+            }
+          );
+        } catch (err) {
+          console.error("Failed to increment view count:", err);
+        }
+      };
+      increment();
+    }
+  }, [product, strapiUrl]);
+
+  const handleToggleFavorite = () => {
+    if (!product) return;
+
+    if (isFavorite(documentId)) {
+      removeFavorite(documentId);
+    } else {
+      addFavorite({
+        documentId: documentId,
+        Name: product.Name,
+        Price: product.Price,
+        imageUrl: product.Images?.[0]?.url,
+      });
+    }
+  };
 
   const handleImageSelect = (image: StrapiImage, index: number) => {
     setSelectedImage(image);
@@ -117,12 +156,17 @@ export default function ProductDetailPage() {
         Error: {error}
       </div>
     );
-  if (!product) return notFound();
+
+  // --- THE FIX: This guard clause ensures `product` is not null below this point ---
+  if (!product) {
+    // This can show briefly between loading and the notFound() redirect
+    return null;
+  }
 
   const { Name, Price, Description, Images } = product;
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "CAD", // UPDATED CURRENCY
+    currency: "CAD",
   });
   const selectedImageIndex = Images?.findIndex(
     (img) => img.id === selectedImage?.id
@@ -201,6 +245,37 @@ export default function ProductDetailPage() {
           <p className="mt-4 text-3xl text-gray-700">
             {priceFormatter.format(Price)}
           </p>
+
+          <div className="mt-6">
+            <button
+              onClick={handleToggleFavorite}
+              aria-pressed={isFavorite(documentId)}
+              className={`w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white transition-colors ${
+                isFavorite(documentId)
+                  ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                  : "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500"
+              } focus:outline-none focus:ring-2 focus:ring-offset-2`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 mr-2"
+                fill={isFavorite(documentId) ? "currentColor" : "none"}
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+              {isFavorite(documentId)
+                ? "Remove from Favorites"
+                : "Add to Favorites"}
+            </button>
+          </div>
+
           <div className="mt-6">
             <h2
               id="description-heading"

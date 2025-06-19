@@ -18,11 +18,13 @@ interface Product {
   Images: StrapiImage[];
 }
 
-// --- DATA FETCHING FUNCTION ---
+// --- DATA FETCHING FUNCTION (UPDATED) ---
 async function getProducts(): Promise<Product[]> {
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
-  const apiUrl = `${strapiUrl}/api/products?populate=*`;
+
+  // --- FIX: Add the sort=createdAt:desc parameter ---
+  const apiUrl = `${strapiUrl}/api/products?populate=*&sort=createdAt:desc`;
 
   try {
     const res = await fetch(apiUrl, { cache: "no-store" });
@@ -42,7 +44,7 @@ async function getProducts(): Promise<Product[]> {
   }
 }
 
-// --- PRODUCT CARD COMPONENT ---
+// --- PRODUCT CARD COMPONENT (No changes needed) ---
 function ProductCard({ product }: { product: Product }) {
   const { documentId, Name, Price, Images } = product;
   const imageUrl = Images?.[0]?.url;
@@ -50,7 +52,7 @@ function ProductCard({ product }: { product: Product }) {
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "CAD", // UPDATED CURRENCY
+    currency: "CAD",
   });
   return (
     <Link
@@ -81,7 +83,7 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
-// --- HOME PAGE COMPONENT ---
+// --- HOME PAGE COMPONENT (No changes needed) ---
 export default async function HomePage() {
   const products = await getProducts();
   return (

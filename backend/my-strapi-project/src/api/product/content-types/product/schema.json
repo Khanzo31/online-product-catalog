@@ -40,6 +40,11 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::product-type.product-type"
+    },
+    "ViewCount": {
+      "type": "integer",
+      "private": true,
+      "default": 0
     }
   }
 }

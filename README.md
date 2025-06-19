@@ -2,9 +2,9 @@
 
 This repository contains the source code for a responsive online product catalog website built with a modern Headless (Jamstack) architecture. The system serves as a digital showcase for unique products, allowing the site owner to manage content and customers to browse, search, and inquire about products.
 
-## Project Status: MVP++ Complete
+## Project Status: Feature Complete
 
-All core P1 (Must-Have) features are now implemented and functional. We have also completed all addressable P2 (Should-Have) features, making the application robust, accessible, analytics-enabled, and ready for the final implementation of its email service.
+All core P1, P2, and P3 requirements are now implemented. The application is functionally complete, with only the final integration of the email service and advanced SEO enhancements remaining.
 
 ### Implemented Features
 
@@ -16,20 +16,60 @@ All core P1 (Must-Have) features are now implemented and functional. We have als
 - **(FR-1.5)** Product Type Management (Create, Edit, Delete categories and custom properties).
 - **(FR-1.7)** Inquiry Management Log to store all customer inquiries.
 - **(FR-1.8)** Static Page Management for "About Us," "Privacy Policy," etc.
-- **(FR-1.2) Admin Dashboard (P2):** A password-protected dashboard at `/dashboard` showing key site metrics.
-- **(NFR-4.2)** Secure server-side form validation and cookie-based authentication for the dashboard.
+- **(FR-1.2) Admin Dashboard (P2):** A password-protected dashboard showing key site metrics.
+- **(FR-1.6) Product View Counts (P3):** A simple view counter on each product that is visible in the Strapi admin panel.
+- **(NFR-4.2)** Secure server-side form validation and cookie-based authentication.
 
 #### Customer / Frontend Features
 
 - **(FR-2.1)** A Home Page displaying a gallery of products.
 - **(FR-2.2)** A dynamic Product Details Page for each item.
 - **(FR-2.3)** A functional Product Inquiry Form that saves submissions to the backend.
-- **(FR-2.4)** A comprehensive Search & Filtering Page with keyword search, type filtering, and dynamic custom property filtering.
+- **(FR-2.4)** A comprehensive Search & Filtering Page.
 - **(FR-2.7)** The ability to view static content pages via dynamic routes.
-- **(FR-2.8)** Cookie Consent Banner that persists the user's choice in local storage.
+- **(FR-2.8)** Cookie Consent Banner that persists user's choice.
+- **(FR-2.5 & FR-2.6) Product Favoriting (P3):** Customers can save products to a "Favorites" list, which is accessible via a dedicated page with a live-updating count in the header.
 - **(NFR-1.1 & NFR-1.2)** A fully responsive design compatible with modern browsers.
-- **(NFR-1.3) Accessibility (WCAG AA) (P2):** A full accessibility audit has been completed. All pages and interactive components (image galleries, forms, modals) are now semantically structured, keyboard-navigable, and provide feedback for screen readers.
-- **(NFR-6.1) Third-Party Analytics (P2):** Consent-aware integration with Google Analytics. Tracking scripts are only loaded after the user explicitly accepts via the cookie banner.
+- **(NFR-1.3) Accessibility (WCAG AA) (P2):** A full accessibility audit has been completed.
+- **(NFR-6.1) Third-Party Analytics (P2):** Consent-aware integration with Google Analytics.
+
+---
+
+### Remaining & Delayed Tasks
+
+The following high-priority tasks are pending to finalize the project for production.
+
+#### Delayed (Requires External Service Configuration)
+
+- **(NFR-5.1) Transactional Email Service (P1):** Integration with a service like Resend to send emails.
+- **(FR-2.3.1) Customer Inquiry Confirmation (P2):** Sending a confirmation email to the customer after an inquiry.
+
+#### Pending (Technical Enhancements)
+
+- **(NFR-3.2, 3.3, 3.4) SEO Implementation (P1):** Generation of dynamic meta tags, structured data (Schema.org), and a `sitemap.xml` file.
+
+### Next Steps
+
+The next and final major step is to complete the core user journey by addressing the delayed P1/P2 requirements: **NFR-5.1 and FR-2.3.1**. This involves integrating the **Resend** transactional email service to make the product inquiry system fully operational.
+
+---
+
+### Remaining & Delayed Tasks
+
+The following high-priority tasks are pending to finalize the project for production.
+
+#### Delayed (Requires External Service Configuration)
+
+- **(NFR-5.1) Transactional Email Service (P1):** Integration with a service like Resend to send emails.
+- **(FR-2.3.1) Customer Inquiry Confirmation (P2):** Sending a confirmation email to the customer after an inquiry.
+
+#### Pending (Technical Enhancements)
+
+- **(NFR-3.2, 3.3, 3.4) SEO Implementation (P1):** Generation of dynamic meta tags, structured data (Schema.org), and a `sitemap.xml` file.
+
+### Next Steps
+
+The next and final major step is to complete the core user journey by addressing the delayed P1/P2 requirements: **NFR-5.1 and FR-2.3.1**. This involves integrating the **Resend** transactional email service to make the product inquiry system fully operational.
 
 ---
 
@@ -65,9 +105,14 @@ The next and final major step is to complete the core user journey by addressing
 ## Project Structure (Comprehensive)
 
 ONLINE-PRODUCT-CATALOG/
+├── .gitignore
 ├── .vscode/
 ├── backend/
 │ └── my-strapi-project/
+│ ├── .env
+│ ├── .env.example
+│ ├── .gitignore
+│ ├── .strapi-updater.json
 │ ├── .strapi/
 │ ├── .tmp/
 │ ├── config/
@@ -94,6 +139,7 @@ ONLINE-PRODUCT-CATALOG/
 │ │ │ ├── inquiry/
 │ │ │ │ ├── content-types/
 │ │ │ │ │ └── inquiry/
+│ │ │ │ │ ├── lifecycles.ts <-- NEW FILE (For Email)
 │ │ │ │ │ └── schema.json
 │ │ │ │ ├── controllers/
 │ │ │ │ │ └── inquiry.ts
@@ -116,8 +162,9 @@ ONLINE-PRODUCT-CATALOG/
 │ │ │ │ │ └── product/
 │ │ │ │ │ └── schema.json
 │ │ │ │ ├── controllers/
-│ │ │ │ │ └── product.ts
+│ │ │ │ │ └── product.ts <-- MODIFIED FILE
 │ │ │ │ ├── routes/
+│ │ │ │ │ ├── 01-custom-product.ts <-- NEW/RENAMED FILE
 │ │ │ │ │ └── product.ts
 │ │ │ │ └── services/
 │ │ │ │ └── product.ts
@@ -139,16 +186,14 @@ ONLINE-PRODUCT-CATALOG/
 │ │ └── generated/
 │ │ ├── components.d.ts
 │ │ └── contentTypes.d.ts
-│ ├── .env
-│ ├── .env.example
-│ ├── .gitignore
-│ ├── .strapi-updater.json
 │ ├── favicon.png
 │ ├── package-lock.json
 │ ├── package.json
 │ ├── README.md
 │ └── tsconfig.json
 ├── frontend/
+│ ├── .env.local
+│ ├── .gitignore
 │ ├── .next/
 │ ├── node_modules/
 │ ├── public/
@@ -165,26 +210,28 @@ ONLINE-PRODUCT-CATALOG/
 │ │ │ │ ├── CookieConsentBanner.tsx
 │ │ │ │ ├── Footer.tsx
 │ │ │ │ ├── GoogleAnalytics.tsx
-│ │ │ │ ├── Header.tsx
+│ │ │ │ ├── Header.tsx <-- MODIFIED FILE
 │ │ │ │ └── ProductInquiryForm.tsx
+│ │ │ ├── context/ <-- NEW FOLDER
+│ │ │ │ └── FavoritesContext.tsx <-- NEW FILE
 │ │ │ ├── dashboard/
 │ │ │ │ ├── actions.ts
 │ │ │ │ ├── layout.tsx
 │ │ │ │ ├── LoginForm.tsx
 │ │ │ │ └── page.tsx
+│ │ │ ├── favorites/ <-- NEW FOLDER
+│ │ │ │ └── page.tsx <-- NEW FILE
 │ │ │ ├── products/
-│ │ │ │ └── [id]/
-│ │ │ │ └── page.tsx
+│ │ │ │ └── [documentId]/
+│ │ │ │ └── page.tsx <-- MODIFIED FILE
 │ │ │ ├── search/
-│ │ │ │ └── page.tsx
-│ │ │ ├── layout.tsx
-│ │ │ └── page.tsx
+│ │ │ │ └── page.tsx <-- MODIFIED FILE
+│ │ │ ├── layout.tsx <-- MODIFIED FILE
+│ │ │ └── page.tsx <-- MODIFIED FILE
 │ │ ├── favicon.ico
 │ │ ├── globals.css
 │ │ ├── layout.tsx
 │ │ └── page.tsx
-│ ├── .env.local
-│ ├── .gitignore
 │ ├── eslint.config.mjs
 │ ├── next-env.d.ts
 │ ├── next.config.ts
@@ -194,7 +241,7 @@ ONLINE-PRODUCT-CATALOG/
 │ ├── README.md
 │ ├── tailwind.config.js
 │ └── tsconfig.json
-├── .gitignore
+├── NEXT_STEPS.md <-- NEW FILE
 ├── README.md
 └── REQUIREMENTS.md
 
@@ -225,6 +272,10 @@ DASHBOARD_PASSWORD=your_secure_password_here
 # Google Analytics ID
 
 NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+
+# STRAPI_API_TOKEN=
+
+STRAPI_API_TOKEN=my_strapi_api_token
 
 - **Frontend Core Logic (Code Files):**
 - `frontend/src/app/products/[id]/page.tsx` (Shows accessible image gallery and single-item fetch)

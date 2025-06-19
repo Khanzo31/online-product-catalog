@@ -8,6 +8,8 @@ import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import CookieConsentBanner from "@/app/components/CookieConsentBanner";
 import GoogleAnalytics from "@/app/components/GoogleAnalytics";
+// --- 1. Import the FavoritesProvider ---
+import { FavoritesProvider } from "@/app/context/FavoritesContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,15 +26,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
-        {/* Render Analytics component - it will only load scripts if consent is given */}
-        <GoogleAnalytics />
+        {/* --- 2. Wrap everything with the FavoritesProvider --- */}
+        <FavoritesProvider>
+          {/* Render Analytics component - it will only load scripts if consent is given */}
+          <GoogleAnalytics />
 
-        <Header />
-        <main className="flex-grow">{children}</main>
-        <Footer />
+          <Header />
+          <main className="flex-grow">{children}</main>
+          <Footer />
 
-        {/* The banner will only show if consent has not been given */}
-        <CookieConsentBanner />
+          {/* The banner will only show if consent has not been given */}
+          <CookieConsentBanner />
+        </FavoritesProvider>
       </body>
     </html>
   );
