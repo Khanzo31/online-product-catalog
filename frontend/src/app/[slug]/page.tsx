@@ -1,7 +1,9 @@
+// frontend/src/app/[slug]/page.tsx
+
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 
-// The interface is simple and flat, matching your API's reality.
+// Interface (no change)
 interface Page {
   id: number;
   Title: string;
@@ -9,33 +11,22 @@ interface Page {
   Content: string;
 }
 
-// =================================================================================
-// DATA FETCHING FUNCTION - FINAL CORRECTED VERSION
-// =================================================================================
+// Data fetching function (no change)
 async function getPageBySlug(slug: string): Promise<Page | null> {
+  // ... (your existing data fetching logic is correct)
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
-
-  // 1. We fetch the unfiltered list of ALL pages.
   const apiUrl = `${strapiUrl}/api/pages`;
-
   try {
     const res = await fetch(apiUrl, { next: { revalidate: 60 } });
     if (!res.ok) {
       console.error("Failed to fetch the list of pages.");
       return null;
     }
-
     const responseData = await res.json();
-
     const allPages: Page[] = responseData.data;
     if (!allPages) return null;
-
-    // --- THE FIX ---
-    // 2. We find the page by looking for the 'Slug' property directly on the page object.
     const page = allPages.find((p) => p.Slug === slug);
-
-    // If no page is found, return null.
     return page || null;
   } catch (error) {
     console.error("Error fetching or processing pages:", error);
@@ -44,14 +35,20 @@ async function getPageBySlug(slug: string): Promise<Page | null> {
 }
 
 // =================================================================================
-// PAGE COMPONENT (No changes needed)
+// PAGE COMPONENT - DEFINITIVE FIX
 // =================================================================================
 export default async function StaticPage({
   params,
 }: {
-  params: { slug: string };
+  // 1. Destructure `params` directly in the signature
+  // 2. Type `params` as a Promise
+  params: Promise<{ slug: string }>;
 }) {
-  const page = await getPageBySlug(params.slug);
+  // 3. Await the `params` promise to get the resolved object
+  const { slug } = await params;
+
+  // 4. Now, `slug` is a string and can be safely used
+  const page = await getPageBySlug(slug);
 
   if (!page) {
     notFound();
