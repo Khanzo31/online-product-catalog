@@ -7,8 +7,10 @@ import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import CookieConsentBanner from "@/app/components/CookieConsentBanner";
-import GoogleAnalytics from "@/app/components/GoogleAnalytics";
-// --- 1. Import the FavoritesProvider ---
+// --- 1. REMOVE the direct import for GoogleAnalytics ---
+// import GoogleAnalytics from "@/app/components/GoogleAnalytics";
+// --- 2. ADD the import for our new wrapper component ---
+import SuspenseWrapper from "@/app/components/SuspenseWrapper";
 import { FavoritesProvider } from "@/app/context/FavoritesContext";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -26,16 +28,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
-        {/* --- 2. Wrap everything with the FavoritesProvider --- */}
         <FavoritesProvider>
-          {/* Render Analytics component - it will only load scripts if consent is given */}
-          <GoogleAnalytics />
+          {/* --- 3. REPLACE <GoogleAnalytics /> with <SuspenseWrapper /> --- */}
+          <SuspenseWrapper />
 
           <Header />
           <main className="flex-grow">{children}</main>
           <Footer />
 
-          {/* The banner will only show if consent has not been given */}
           <CookieConsentBanner />
         </FavoritesProvider>
       </body>
