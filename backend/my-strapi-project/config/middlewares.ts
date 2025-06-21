@@ -29,22 +29,21 @@ export default [
       },
     },
   },
-  // --- THIS IS THE NEW, EXPANDED CORS CONFIGURATION ---
   {
     name: "strapi::cors",
     config: {
       enabled: true,
       headers: "*",
-      // Add your frontend and backend URLs to the origin list
       origin: [
-        "http://localhost:3000", // Your local frontend
-        "http://localhost:1337", // Your local strapi
-        "https://my-strapi-backend-83yr.onrender.com", // Your deployed strapi
-        "https://online-product-catalog-m5r17hhmr-bakhtyar-khans-projects.vercel.app/", // Vercel URL
+        "http://localhost:3000",
+        "http://localhost:1337",
+        "https://my-strapi-backend-83yr.onrender.com",
+        // --- THIS IS THE FIX ---
+        // The Vercel URL from the error message, WITHOUT the trailing slash
+        "https://online-product-catalog-k1pm21rrm-bakhtyar-khans-projects.vercel.app",
       ],
     },
   },
-  // ---------------------------------------------------
   "strapi::poweredBy",
   "strapi::query",
   "strapi::body",
