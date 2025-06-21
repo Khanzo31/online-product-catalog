@@ -1,10 +1,11 @@
+// frontend/src/app/search/page.tsx
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-// --- Type Definitions ---
+// --- Type Definitions (No changes needed) ---
 interface StrapiImage {
   id: number;
   url: string;
@@ -37,12 +38,11 @@ interface CustomFilterValues {
   [key: string]: string;
 }
 
-// --- ProductCard Component ---
+// --- ProductCard Component (UPDATED) ---
 function ProductCard({ product }: { product: Product }) {
   const { documentId, Name, Price, Images } = product;
   const imageUrl = Images?.[0]?.url;
-  const strapiUrl =
-    process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
+  // NOTE: The `strapiUrl` is no longer needed for the image
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "CAD",
@@ -55,7 +55,8 @@ function ProductCard({ product }: { product: Product }) {
       <div className="relative h-56 w-full bg-gray-100">
         {imageUrl ? (
           <Image
-            src={`${strapiUrl}${imageUrl}`}
+            // --- FIX: Use the imageUrl directly as it's an absolute path from Cloudinary ---
+            src={imageUrl}
             alt={Name || "Product Image"}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -79,6 +80,7 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
+// --- The rest of the component remains unchanged ---
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -99,7 +101,6 @@ export default function SearchPage() {
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
   useEffect(() => {
-    // Fetches product types on initial load
     const fetchProductTypes = async () => {
       try {
         const res = await fetch(`${strapiUrl}/api/product-types`);
@@ -113,7 +114,6 @@ export default function SearchPage() {
   }, [strapiUrl]);
 
   useEffect(() => {
-    // Fetches custom properties when a product type is selected
     if (!selectedType) {
       setCustomProperties([]);
       setCustomFilterValues({});
@@ -151,7 +151,6 @@ export default function SearchPage() {
       queryParams.append("filters[Name][$containsi]", searchTerm.trim());
     }
     queryParams.append("populate", "*");
-    // FIX: Add sorting by creation date to ensure a consistent order
     queryParams.append("sort", "createdAt:desc");
 
     const apiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
@@ -163,7 +162,6 @@ export default function SearchPage() {
       const responseData = await res.json();
       let products: Product[] = responseData.data || [];
 
-      // Client-side filtering
       if (selectedType) {
         products = products.filter(
           (product) => product.Product?.documentId === selectedType

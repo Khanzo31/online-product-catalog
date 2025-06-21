@@ -18,14 +18,11 @@ interface Product {
   Images: StrapiImage[];
 }
 
-// --- DATA FETCHING FUNCTION (UPDATED) ---
+// --- DATA FETCHING FUNCTION (No changes needed) ---
 async function getProducts(): Promise<Product[]> {
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
-
-  // --- FIX: Add the sort=createdAt:desc parameter ---
   const apiUrl = `${strapiUrl}/api/products?populate=*&sort=createdAt:desc`;
-
   try {
     const res = await fetch(apiUrl, { cache: "no-store" });
     if (!res.ok) {
@@ -44,12 +41,11 @@ async function getProducts(): Promise<Product[]> {
   }
 }
 
-// --- PRODUCT CARD COMPONENT (No changes needed) ---
+// --- PRODUCT CARD COMPONENT (UPDATED) ---
 function ProductCard({ product }: { product: Product }) {
   const { documentId, Name, Price, Images } = product;
   const imageUrl = Images?.[0]?.url;
-  const strapiUrl =
-    process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
+  // NOTE: The `strapiUrl` is no longer needed for the image
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "CAD",
@@ -62,7 +58,8 @@ function ProductCard({ product }: { product: Product }) {
       <div className="relative h-56 w-full flex items-center justify-center bg-gray-200">
         {imageUrl ? (
           <Image
-            src={`${strapiUrl}${imageUrl}`}
+            // --- FIX: Use the imageUrl directly as it's an absolute path from Cloudinary ---
+            src={imageUrl}
             alt={Name || "Product Image"}
             fill
             className="object-cover"

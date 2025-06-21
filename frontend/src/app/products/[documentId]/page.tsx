@@ -1,5 +1,4 @@
 // frontend/src/app/products/[documentId]/page.tsx
-
 "use client";
 import { useState, useEffect, useRef, KeyboardEvent } from "react";
 import Image from "next/image";
@@ -8,7 +7,7 @@ import { useParams, notFound } from "next/navigation";
 import ProductInquiryForm from "@/app/components/ProductInquiryForm";
 import { useFavorites } from "@/app/context/FavoritesContext";
 
-// --- TYPE DEFINITIONS (from your original working file) ---
+// --- TYPE DEFINITIONS (No changes needed) ---
 interface StrapiImage {
   id: number;
   url: string;
@@ -27,7 +26,7 @@ interface Product {
   CustomPropertyValues?: { [key: string]: string | number };
 }
 
-// --- PRODUCT DETAIL PAGE COMPONENT ---
+// --- PRODUCT DETAIL PAGE COMPONENT (UPDATED) ---
 export default function ProductDetailPage() {
   const params = useParams();
   const documentId = params.documentId as string;
@@ -37,10 +36,10 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState<StrapiImage | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  // NOTE: The `strapiUrl` is only needed for data fetching, not images
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
-  // Initialize the favorites context
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
   useEffect(() => {
@@ -157,9 +156,7 @@ export default function ProductDetailPage() {
       </div>
     );
 
-  // --- THE FIX: This guard clause ensures `product` is not null below this point ---
   if (!product) {
-    // This can show briefly between loading and the notFound() redirect
     return null;
   }
 
@@ -187,7 +184,8 @@ export default function ProductDetailPage() {
           >
             {selectedImage ? (
               <Image
-                src={`${strapiUrl}${selectedImage.url}`}
+                // --- FIX #1: Use the URL directly ---
+                src={selectedImage.url}
                 alt={`${Name} - View ${(selectedImageIndex ?? 0) + 1} of ${
                   Images.length
                 }`}
@@ -229,7 +227,8 @@ export default function ProductDetailPage() {
                 } focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}
               >
                 <Image
-                  src={`${strapiUrl}${img.url}`}
+                  // --- FIX #2: Use the URL directly ---
+                  src={img.url}
                   alt={`View Image ${index + 1}`}
                   fill
                   className="object-cover"
