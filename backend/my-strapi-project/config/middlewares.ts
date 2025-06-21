@@ -34,13 +34,17 @@ export default [
     config: {
       enabled: true,
       headers: "*",
+      // --- THE DEFINITIVE CONFIGURATION ---
       origin: [
         "http://localhost:3000",
         "http://localhost:1337",
         "https://my-strapi-backend-83yr.onrender.com",
-        // --- THIS IS THE FIX ---
-        // The Vercel URL from the error message, WITHOUT the trailing slash
-        "https://online-product-catalog.vercel.app/",
+
+        // 1. Your MAIN production domain (NO trailing slash)
+        "https://online-product-catalog.vercel.app",
+
+        // 2. A Regular Expression for ALL preview/branch deployments
+        /^https:\/\/online-product-catalog-.*\.vercel\.app$/,
       ],
     },
   },
