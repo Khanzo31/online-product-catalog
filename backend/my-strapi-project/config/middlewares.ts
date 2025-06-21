@@ -40,8 +40,7 @@ export default [
         "http://localhost:3000", // Your local frontend
         "http://localhost:1337", // Your local strapi
         "https://my-strapi-backend-83yr.onrender.com", // Your deployed strapi
-        // Add your Vercel URL here when you have it
-        // e.g., 'https://your-frontend-app.vercel.app'
+        "https://online-product-catalog-m5r17hhmr-bakhtyar-khans-projects.vercel.app/", // Vercel URL
       ],
     },
   },
