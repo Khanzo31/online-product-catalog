@@ -40,7 +40,7 @@ export default [
         "https://my-strapi-backend-83yr.onrender.com",
         // --- THIS IS THE FIX ---
         // The Vercel URL from the error message, WITHOUT the trailing slash
-        "https://online-product-catalog-k1pm21rrm-bakhtyar-khans-projects.vercel.app",
+        "https://online-product-catalog.vercel.app/",
       ],
     },
   },
