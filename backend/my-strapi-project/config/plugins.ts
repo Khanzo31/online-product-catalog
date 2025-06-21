@@ -1,4 +1,5 @@
 // backend/my-strapi-project/config/plugins.ts
+
 export default ({ env }) => ({
   upload: {
     config: {
@@ -7,11 +8,13 @@ export default ({ env }) => ({
         cloud_name: env("CLOUDINARY_NAME"),
         api_key: env("CLOUDINARY_KEY"),
         api_secret: env("CLOUDINARY_SECRET"),
-        upload_preset: env("CLOUDINARY_UPLOAD_PRESET"),
       },
       actionOptions: {
-        upload: {},
-        uploadStream: {},
+        upload: {
+          // This is the correct location for the preset
+          // to enable direct client-side uploads.
+          preset: env("CLOUDINARY_UPLOAD_PRESET"),
+        },
         delete: {},
       },
     },
