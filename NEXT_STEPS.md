@@ -1,69 +1,139 @@
-# Project Completion Plan
+# Project: Online Product Catalog Website
 
-This document outlines the final remaining tasks required to complete the Online Product Catalog website according to the project specification. The project's core functionality is complete, and all P3 (Nice-to-Have) features have been implemented.
+This repository contains the source code for a responsive online product catalog website built with a modern Headless (Jamstack) architecture. The system serves as a digital showcase for unique products, allowing the site owner to manage content and customers to browse, search, and inquire about products.
 
-The remaining tasks are divided into two distinct categories: **Email Integration** and **SEO Enhancement**.
+## 🚀 Project Status: Deployed & Live for Testing
 
----
+All core P1, P2, and P3 requirements are implemented. The application has been successfully deployed to a live production environment and is ready for third-party user testing and content population.
 
-## 1. Final Core Functionality: Email Integration (High Priority)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com)
+[![Deploy with Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
 
-This is the final critical step to make the website fully operational. It involves integrating a transactional email service so that product inquiries are sent to the administrator and confirmed with the customer.
+### Live Demo URLs
 
-### Prerequisites:
-
-- **Domain Name:** A registered domain name (e.g., from Google Domains, Namecheap).
-- **Resend Account:** A free account at [resend.com](https://resend.com).
-- **Verified Domain in Resend:** The domain must be added to Resend and verified via DNS records.
-- **Resend API Key:** An API key created in the Resend dashboard.
-
-### Remaining Requirements:
-
-| ID           | Requirement Name              | Priority | Status      |
-| :----------- | :---------------------------- | :------- | :---------- |
-| **NFR-5.1**  | Transactional Email Service   | P1       | **Pending** |
-| **FR-2.3.1** | Customer Inquiry Confirmation | P2       | **Pending** |
-
-### Implementation Steps (Backend - Strapi):
-
-1.  **Install Resend SDK:** In the `backend/my-strapi-project` directory, run `npm install resend`.
-2.  **Configure Environment Variables:** Add the following to the `backend/my-strapi-project/.env` file:
-    - `RESEND_API_KEY=<Your Resend API Key>`
-    - `ADMIN_EMAIL=<The administrator's email address>`
-    - `FROM_EMAIL=<Your verified 'from' address on Resend>`
-3.  **Create a Lifecycle Hook:** Create a new file at `backend/my-strapi-project/src/api/inquiry/content-types/inquiry/lifecycles.ts`.
-4.  **Add Email Logic:** Implement the `afterCreate` function in the lifecycle hook to use the Resend SDK. This function will:
-    - Send a detailed inquiry notification to the `ADMIN_EMAIL`.
-    - Send a simple confirmation message to the customer's email address.
-5.  **Restart and Test:** Restart the Strapi server and submit a test inquiry from the live frontend to confirm both emails are sent and received correctly.
+- **Frontend Website:** `https://<your-vercel-app-name>.vercel.app`
+- **Backend Admin Panel:** `https://my-strapi-backend-l5qf.onrender.com`
 
 ---
 
-## 2. Technical Enhancement: SEO (P1)
+## Implemented Features
 
-These tasks are essential for optimizing the website's visibility in search engines like Google. They ensure that search engines can effectively crawl, index, and understand the content of each product page.
+The application is functionally complete according to the project specification.
 
-### Remaining Requirements:
+#### Administrator Features
 
-| ID          | Requirement Name         | Priority | Status      |
-| :---------- | :----------------------- | :------- | :---------- |
-| **NFR-3.2** | Meta Tags                | P1       | **Pending** |
-| **NFR-3.3** | Structured Data (Schema) | P1       | **Pending** |
-| **NFR-3.4** | Sitemap.xml              | P1       | **Pending** |
+- **(FR-1.1)** Secure Administrator Login to a management panel.
+- **(FR-1.3)** Product Creation with name, SKU, description, images, price, and type.
+- **(FR-1.4)** Full Product Management (View, Edit, Delete).
+- **(FR-1.5)** Product Type Management (Create, Edit, Delete categories and custom properties).
+- **(FR-1.7)** Inquiry Management Log to store all customer inquiries.
+- **(FR-1.8)** Static Page Management for "About Us," "Privacy Policy," etc.
+- **(FR-1.2) Admin Dashboard (P2):** A password-protected dashboard showing key site metrics.
+- **(FR-1.6) Product View Counts (P3):** A simple view counter on each product that is visible in the Strapi admin panel.
+- **(NFR-4.2)** Secure server-side form validation and cookie-based authentication.
 
-### Implementation Steps (Frontend - Next.js):
+#### Customer / Frontend Features
 
-1.  **Refactor Product Detail Page (`products/[documentId]/page.tsx`):**
+- **(FR-2.1)** A Home Page displaying a gallery of products.
+- **(FR-2.2)** A dynamic Product Details Page for each item.
+- **(FR-2.3)** A functional Product Inquiry Form that saves submissions to the backend.
+- **(FR-2.4)** A comprehensive Search & Filtering Page.
+- **(FR-2.7)** The ability to view static content pages via dynamic routes.
+- **(FR-2.8)** Cookie Consent Banner that persists user's choice.
+- **(FR-2.5 & FR-2.6) Product Favoriting (P3):** Customers can save products to a "Favorites" list, which is accessible via a dedicated page with a live-updating count in the header.
+- **(NFR-1.1 & NFR-1.2)** A fully responsive design compatible with modern browsers.
+- **(NFR-1.3) Accessibility (WCAG AA) (P2):** A full accessibility audit has been completed.
+- **(NFR-6.1) Third-Party Analytics (P2):** Consent-aware integration with Google Analytics.
 
-    - The page must be converted from a pure Client Component (`"use client"`) to a structure that supports server-side metadata generation. The recommended approach is to split it into a Server Component (parent) for data fetching and metadata, and a Client Component (child) for the interactive elements (image gallery, favorite button).
-    - Implement the `generateMetadata` function in the new parent Server Component to dynamically create unique `<title>` and `<meta name="description">` tags for each product.
+---
 
-2.  **Add Structured Data:**
+## Technology Stack & Infrastructure
 
-    - Within the refactored Product Detail Page, add a `<script type="application/ld+json">` tag.
-    - This script will contain `Product` schema markup from [Schema.org](https://schema.org/Product), dynamically populating fields like `name`, `description`, `image`, `sku`, and `offers`.
+| Component               | Technology / Service | Role & Justification                                                                          |
+| :---------------------- | :------------------- | :-------------------------------------------------------------------------------------------- |
+| **Front-End Framework** | **Next.js (React)**  | Builds the user-facing website with server-side rendering for high performance.               |
+| **Styling**             | **Tailwind CSS**     | A utility-first CSS framework for rapid, responsive UI development.                           |
+| **Back-End (CMS)**      | **Strapi**           | Headless CMS providing a user-friendly admin panel and a content API.                         |
+| **Database**            | **PostgreSQL**       | A powerful, open-source relational database for persistent data storage.                      |
+| **Media Storage**       | **Cloudinary**       | A cloud-based service for permanent storage and delivery of image uploads.                    |
+| **Front-End Hosting**   | **Vercel**           | A global hosting platform optimized for Next.js, providing continuous deployment from GitHub. |
+| **Back-End Hosting**    | **Render**           | A cloud platform used to host the Strapi CMS and PostgreSQL database.                         |
 
-3.  **Generate Sitemap:**
-    - Create a new file at `frontend/src/app/sitemap.ts`.
-    - This file will export a default function that programmatically fetches all product and static page URLs from the Strapi API.
-    - It will then return an array of these URLs, formatted according to the sitemap protocol. Next.js will use this file to automatically generate a `sitemap.xml` file at build time.
+---
+
+## Next Steps
+
+With the application now live, the final tasks involve integrating third-party services to complete the user journey and enhance search visibility.
+
+### 1. Final Core Functionality: Email Integration (High Priority)
+
+This is the last critical step to make the inquiry system fully operational. It involves integrating a transactional email service so that product inquiries are sent to the administrator and confirmed with the customer.
+
+- **(NFR-5.1)** Integrate a transactional email service (e.g., **Resend**).
+- **(FR-2.3.1)** Send an automated confirmation email to the customer after an inquiry.
+
+### 2. Technical Enhancement: SEO (P1)
+
+These tasks are essential for optimizing the website's visibility in search engines.
+
+- **(NFR-3.2)** Dynamically generate unique `<title>` and `<meta name="description">` tags for each product page.
+- **(NFR-3.3)** Add structured data (`Product` schema from Schema.org) to product pages.
+- **(NFR-3.4)** Automatically generate a `sitemap.xml` file.
+
+---
+
+## Local Development Setup
+
+To run this project on a local machine, follow these steps.
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm
+- Git
+
+### 1. Backend (Strapi)
+
+```bash
+# 1. Navigate to the backend directory
+cd backend/my-strapi-project
+
+# 2. Create an environment file from the example
+cp .env.example .env
+
+# 3. Fill in the .env file with your local database details and new secret keys.
+#    For local development, you can leave the database variables commented out
+#    to use the default SQLite database.
+
+# 4. Install dependencies
+npm install
+
+# 5. Run the development server
+npm run develop
+```
+
+The Strapi admin panel will be available at http://localhost:1337/admin.
+
+# 1. Navigate to the frontend directory
+
+cd frontend
+
+# 2. Create a local environment file
+
+cp .env.local.example .env.local
+
+# 3. Edit .env.local to point to your local Strapi instance
+
+NEXT_PUBLIC_STRAPI_API_URL=http://127.0.0.1:1337
+
+# ...add other variables like dashboard password
+
+# 4. Install dependencies
+
+npm install
+
+# 5. Run the development server
+
+npm run dev
+
+The frontend website will be available at http://localhost:3000.
