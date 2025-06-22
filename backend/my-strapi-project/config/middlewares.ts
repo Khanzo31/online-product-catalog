@@ -15,14 +15,14 @@ export default [
             "data:",
             "blob:",
             "dl.airtable.com",
-            "res.cloudinary.com",
+            "res.cloudinary.com", // Keep for production
           ],
           "media-src": [
             "'self'",
             "data:",
             "blob:",
             "dl.airtable.com",
-            "res.cloudinary.com",
+            "res.cloudinary.com", // Keep for production
           ],
           upgradeInsecureRequests: null,
         },
@@ -32,19 +32,15 @@ export default [
   {
     name: "strapi::cors",
     config: {
-      enabled: true,
       headers: "*",
-      // --- THE DEFINITIVE CONFIGURATION ---
+      // This origin array is correctly configured for both local dev and production.
+      // It includes the necessary localhost URLs.
       origin: [
-        "http://localhost:3000",
-        "http://localhost:1337",
-        "https://my-strapi-backend-83yr.onrender.com",
-
-        // 1. Your MAIN production domain (NO trailing slash)
-        "https://online-product-catalog.vercel.app",
-
-        // 2. A Regular Expression for ALL preview/branch deployments
-        /^https:\/\/online-product-catalog-.*\.vercel\.app$/,
+        "http://localhost:3000", // Local Next.js frontend
+        "http://localhost:1337", // Local Strapi Admin
+        "https://my-strapi-backend-l5qf.onrender.com", // Production Backend
+        "https://online-product-catalog.vercel.app", // Production Frontend
+        /^https:\/\/online-product-catalog-.*\.vercel\.app$/, // Vercel Preview/Branch Deploys
       ],
     },
   },

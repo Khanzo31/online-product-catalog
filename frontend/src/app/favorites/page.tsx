@@ -1,18 +1,23 @@
 // frontend/src/app/favorites/page.tsx
 "use client";
 
-// --- 1. Import FavoriteItem alongside useFavorites ---
 import { useFavorites, FavoriteItem } from "@/app/context/FavoritesContext";
 import Link from "next/link";
 import Image from "next/image";
 
-// --- 2. Use FavoriteItem instead of any ---
 function FavoriteProductCard({ product }: { product: FavoriteItem }) {
   const { documentId, Name, Price, imageUrl } = product;
   const { removeFavorite } = useFavorites();
 
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
+
+  // --- DEFINITIVE FIX: Universal Image URL Logic ---
+  const fullImageUrl = imageUrl
+    ? imageUrl.startsWith("http")
+      ? imageUrl
+      : `${strapiUrl}${imageUrl}`
+    : null;
 
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -23,9 +28,9 @@ function FavoriteProductCard({ product }: { product: FavoriteItem }) {
     <div className="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
       <Link href={`/products/${documentId}`} className="block">
         <div className="aspect-square bg-gray-200 group-hover:opacity-75">
-          {imageUrl ? (
+          {fullImageUrl ? ( // Use the new variable
             <Image
-              src={`${strapiUrl}${imageUrl}`}
+              src={fullImageUrl} // Use the new variable
               alt={Name || "Product Image"}
               width={400}
               height={400}

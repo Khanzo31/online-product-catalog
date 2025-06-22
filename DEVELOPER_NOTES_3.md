@@ -7,7 +7,7 @@ This document provides a definitive post-mortem of the complex debugging process
 All P1/P2 features are implemented and the application is live. However, due to the inherent limitations of the free-tier hosting plan on Render, a specific workaround is required for a smooth content management experience when uploading multiple images.
 
 - **Core Functionality:** All systems (data fetching, search, inquiries, dashboard) are fully operational.
-- **Image Uploads:** Functional, but requires uploading images one at a time to prevent server timeouts. This is the official and recommended procedure for content managers on the current hosting plan.
+- **Image Uploads:** Functional, but requires **pre-compressing images locally AND uploading them one at a time** to prevent server timeouts. This is the official and recommended procedure for content managers on the current hosting plan.
 
 ---
 
@@ -17,46 +17,38 @@ The process of enabling image uploads from the Strapi admin panel to a Cloudinar
 
 ### 1. The Memory Crash
 
-- **Symptom:** When uploading multiple high-resolution images, the process would hang and eventually fail with a generic `Failed to execute 'json' on 'Response': Unexpected end of JSON input` error in the browser. A "Web Service ... exceeded its memory limit" email was received from Render.
-- **Root Cause:** Strapi's default behavior is to process uploaded files on the server before sending them to a provider like Cloudinary. The large, multi-megabyte images from Unsplash consumed more RAM than was available on the Render Free Tier (512MB), causing the server instance to crash mid-upload.
-- **Resolution Attempt #1 (Failure):** Pre-compressing images locally using `tinypng` still caused a memory crash, proving the memory limit was extremely restrictive.
+- **Symptom:** When uploading multiple high-resolution images, the process would hang and eventually fail. A "Web Service ... exceeded its memory limit" email was received from Render.
+- **Root Cause:** Strapi's default behavior is to process uploaded files on its own server before sending them to a provider like Cloudinary. The large, multi-megabyte images consumed more RAM than was available on the Render Free Tier (512MB), causing the server instance to crash mid-upload.
+- **Initial Workaround (Failure):** Pre-compressing images locally using `tinypng` and uploading them one-by-one still resulted in intermittent failures, proving the server limitations were extreme.
 
-### 2. The Direct Upload Configuration
+### 2. The Direct Upload Configuration Attempt
 
-- **Goal:** To bypass the server entirely for uploads, preventing memory usage.
+- **Goal:** To bypass the Render server entirely for uploads, preventing memory usage by having the browser upload directly to Cloudinary.
 - **Implementation:**
-  1. An `Unsigned` upload preset was created in Cloudinary to allow direct uploads from a browser.
-  2. An incoming transformation (`w_1600,c_scale,q_auto`) was added to this preset to automatically resize and optimize all uploads.
-  3. The `plugins.ts` file in Strapi was updated to reference this preset via a `CLOUDINARY_UPLOAD_PRESET` environment variable.
-- **Symptom:** The memory crash and JSON error persisted. This proved the direct-upload mechanism was not being triggered, and uploads were still being routed through the server.
+  1. An `Unsigned` upload preset named `strapi-unsigned-uploads` was created in Cloudinary.
+  2. The `config/plugins.ts` file in Strapi was updated to reference this preset. The key learning was that the `preset` key must be placed inside `actionOptions.upload` to enable client-side uploads, not inside `providerOptions`.
+- **Symptom:** After this change, uploads created **duplicate files** in the Cloudinary Media Library and the delivered image URL from Strapi was missing the desired transformation rule. This proved that the direct upload was succeeding, but the final confirmation step from the browser back to the Strapi server was failing and being retried.
 
-### 3. The Missing "Cloudinary" Tab & The CSP/CORS Rabbit Hole
+### 3. The Final Bottleneck: Concurrency & Timeouts
 
-- **Symptom:** A thorough check of the Strapi Media Library revealed the "Cloudinary" tab (for browsing the Cloudinary library directly) was missing. This was the key clue that the plugin was not initializing correctly.
-- **Investigation & Resolution Path:**
-  1. **Clean Re-install:** A full, clean re-installation of all backend `node_modules` was performed to rule out a corrupted dependency. The issue persisted.
-  2. **Content Security Policy (CSP):** It was hypothesized that Strapi's default security policy was blocking the plugin's UI from loading. The `config/middlewares.ts` file was updated to add `res.cloudinary.com` to the `img-src` and `media-src` directives. The issue persisted.
-  3. **Cross-Origin Resource Sharing (CORS):** The investigation then shifted to network requests. The final hypothesis was that while the direct upload to Cloudinary might be working, the final confirmation `POST` from the admin panel back to the Strapi server was being blocked by CORS policy. The `config/middlewares.ts` file was updated again with an expanded `strapi::cors` configuration, explicitly listing the backend and frontend URLs in the `origin` array.
+- **Symptom:** Even when uploading a single, uncompressed image, the process would fail in the Strapi UI with a generic `Failed to execute 'json' on 'Response': Unexpected end of JSON input` error.
+- **Root Cause:** This partial success proved that all configurations (CORS, Cloudinary Preset, `plugins.ts`) were finally correct. The new, ultimate bottleneck was the **processing power and concurrency limitations** of the Render Free Tier. The server could not even reliably handle the single, lightweight API confirmation call from the browser after a successful upload to Cloudinary. The connection would die before the server could respond, resulting in the JSON error.
 
-### 4. The Final Bottleneck: Concurrency & Timeouts
+### 4. Final Resolution (The Official Workaround)
 
-- **Symptom:** After all configuration fixes, the behavior changed slightly but critically: when uploading multiple images, **one** image would successfully upload, while the others would fail with the same JSON error.
-- **Root Cause:** This partial success proved that all configurations (CSP, CORS, Cloudinary Preset) were finally correct. The new bottleneck was the **processing power and concurrency limitations** of the Render Free Tier. The server could handle the single API confirmation call from the first successful upload, but it could not handle the rapid, near-simultaneous API calls from the second, third, etc., uploads. This caused the server process to hang and the connection to time out, leading to the JSON error for all subsequent images.
-
-### 5. Final Resolution (The Official Workaround)
-
-- **The "One-by-One" Method:** To work within the server's limitations, images must be uploaded sequentially.
+- **The "Compress and One-by-One" Method:** To work within the server's extreme limitations, both the file size and the number of requests must be minimized. This is the only reliable method.
 - **Procedure:**
-  1. In the "Add new assets" modal, select and upload **only one** image.
-  2. Wait for the upload to complete successfully.
-  3. Click "Add more assets" and repeat the process for each subsequent image.
-- **Result:** This method was successful. It correctly uses Cloudinary for the heavy lifting and gives the free-tier server enough time to process each confirmation step individually without being overwhelmed.
+  1. **Pre-compress the image:** Use a service like [tinypng.com](https://tinypng.com/) to shrink the image file size, ideally to under 500 KB.
+  2. **Upload one at a time:** In the "Add new assets" modal, select and upload **only one compressed image**.
+  3. Wait for the upload to complete successfully.
+  4. Click "Add more assets" and repeat the process for each subsequent compressed image.
+- **Result:** This method was successful. It uses Cloudinary for the heavy lifting (which was already configured) and critically, it sends a much smaller source file and gives the free-tier server enough time to process the single, lightweight confirmation step without being overwhelmed.
 
 ---
 
 ## Final Key Learnings
 
-- **Free Tiers Have Multiple Limits:** The primary constraint is not just RAM, but also CPU and the ability to handle concurrent requests. A feature that works perfectly on a local machine can fail in production due to these non-memory-related bottlenecks.
-- **Browser Errors Can Be Misleading:** The `Unexpected end of JSON input` error was a generic symptom of a severed connection. The true cause evolved from a server crash (memory), to a CORS block, and finally to a server timeout (concurrency).
-- **Partial Success is a Powerful Clue:** The fact that one upload worked while others failed was the key piece of information that allowed us to eliminate configuration issues and pinpoint the concurrency limitation as the final root cause.
-- **The Official Workaround is Necessary:** Until the project is moved to a paid hosting plan (e.g., Render Starter), the "one-by-one" upload method is the required and only reliable way to add multiple images to a product.
+- **Free Tiers Have Multiple Limits:** The primary constraint is not just RAM, but also CPU and the ability to handle even single, lightweight API requests in a timely manner. A feature that works perfectly on a local machine can fail in production due to these non-memory-related bottlenecks.
+- **Browser Errors Can Be Misleading:** The `Unexpected end of JSON input` error was a generic symptom of a severed connection. The true cause was a server timeout during the final API confirmation step.
+- **Duplicate Files are a Powerful Clue:** The appearance of duplicate assets in Cloudinary was the key piece of information that proved the direct upload itself was working, but the confirmation from the browser to the Strapi server was failing and being retried.
+- **The Official Workaround is Necessary:** Until the project is moved to a paid hosting plan (e.g., Render Starter), the **"Compress and One-by-One"** upload method is the required and only reliable way to add images.

@@ -2,104 +2,48 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import ProductCard, { ProductCardProps } from "@/app/components/ProductCard";
 
-// --- Type Definitions (No changes needed) ---
-interface StrapiImage {
-  id: number;
-  url: string;
-  width: number;
-  height: number;
-  name: string;
-}
+// Type Definitions (no changes)
 interface ProductType {
   id: number;
   documentId: string;
   Name: string;
-  CustomProperties?: CustomProperty[];
+  CustomProperties?: { name: string; type: string }[];
 }
-interface Product {
-  id: number;
-  documentId: string;
-  Name: string;
+interface Product extends ProductCardProps {
   SKU: string;
   Description: string;
-  Price: number;
-  Images: StrapiImage[];
   CustomPropertyValues?: { [key: string]: string | number };
   Product?: ProductType;
-}
-interface CustomProperty {
-  name: string;
-  type: "text" | "number" | "boolean";
 }
 interface CustomFilterValues {
   [key: string]: string;
 }
 
-// --- ProductCard Component (UPDATED) ---
-function ProductCard({ product }: { product: Product }) {
-  const { documentId, Name, Price, Images } = product;
-  const imageUrl = Images?.[0]?.url;
-  // NOTE: The `strapiUrl` is no longer needed for the image
-  const priceFormatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "CAD",
-  });
-  return (
-    <Link
-      href={`/products/${documentId}`}
-      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-    >
-      <div className="relative h-56 w-full bg-gray-100">
-        {imageUrl ? (
-          <Image
-            // --- FIX: Use the imageUrl directly as it's an absolute path from Cloudinary ---
-            src={imageUrl}
-            alt={Name || "Product Image"}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <span className="text-gray-500">No Image</span>
-          </div>
-        )}
-      </div>
-      <div className="bg-white p-4">
-        <h3 className="text-lg font-semibold text-gray-800 truncate">
-          {Name || "Untitled Product"}
-        </h3>
-        <p className="mt-1 text-md font-medium text-gray-600">
-          {priceFormatter.format(Price)}
-        </p>
-      </div>
-    </Link>
-  );
-}
-
-// --- The rest of the component remains unchanged ---
 export default function SearchPage() {
+  // State variables (one new state added)
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [customProperties, setCustomProperties] = useState<CustomProperty[]>(
-    []
-  );
+  const [customProperties, setCustomProperties] = useState<
+    { name: string; type: string }[]
+  >([]);
   const [customFilterValues, setCustomFilterValues] =
     useState<CustomFilterValues>({});
   const [statusMessage, setStatusMessage] = useState(
     "Enter a keyword or select a type to search for products."
   );
+  // --- NEW: State for sorting ---
+  const [sortBy, setSortBy] = useState("default");
 
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
+  // Data fetching useEffects (no changes)
   useEffect(() => {
     const fetchProductTypes = async () => {
       try {
@@ -139,12 +83,15 @@ export default function SearchPage() {
     fetchCustomProperties();
   }, [selectedType, strapiUrl]);
 
+  // Main search handler (no changes)
   const handleSearch = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
     setSearched(true);
     setResults([]);
     setStatusMessage("Searching for products...");
+    // --- NEW: Reset sort on new search ---
+    setSortBy("default");
 
     const queryParams = new URLSearchParams();
     if (searchTerm.trim()) {
@@ -198,6 +145,31 @@ export default function SearchPage() {
     }
   };
 
+  // --- NEW: useEffect to handle sorting when 'sortBy' or 'results' change ---
+  useEffect(() => {
+    if (results.length > 1) {
+      const sortedResults = [...results].sort((a, b) => {
+        switch (sortBy) {
+          case "price-asc":
+            return a.Price - b.Price;
+          case "price-desc":
+            return b.Price - a.Price;
+          case "name-asc":
+            return a.Name.localeCompare(b.Name);
+          case "name-desc":
+            return b.Name.localeCompare(a.Name);
+          default:
+            return 0; // 'default' does not re-sort
+        }
+      });
+      // This check prevents an infinite loop
+      if (JSON.stringify(sortedResults) !== JSON.stringify(results)) {
+        setResults(sortedResults);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortBy]); // We only want this to run when the user changes the sort option
+
   const selectedTypeName =
     productTypes.find((pt) => pt.documentId === selectedType)?.Name || "";
 
@@ -209,6 +181,7 @@ export default function SearchPage() {
         {statusMessage}
       </div>
 
+      {/* --- Search Form (no changes) --- */}
       <form
         onSubmit={handleSearch}
         className="max-w-xl mx-auto mb-12 space-y-4"
@@ -285,15 +258,43 @@ export default function SearchPage() {
         </div>
       </form>
 
+      {/* --- Results Section --- */}
       <div aria-busy={loading}>
         {loading ? (
           <p className="text-center">Searching...</p>
         ) : searched ? (
           results.length > 0 ? (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {results.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+            <div>
+              {/* --- NEW: Sorting Dropdown --- */}
+              <div className="flex justify-between items-center mb-6">
+                <p className="text-sm text-gray-700">
+                  Showing {results.length} product
+                  {results.length !== 1 ? "s" : ""}.
+                </p>
+                <div>
+                  <label htmlFor="sort-by" className="sr-only">
+                    Sort by
+                  </label>
+                  <select
+                    id="sort-by"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  >
+                    <option value="default">Sort by Relevance</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="name-asc">Name: A to Z</option>
+                    <option value="name-desc">Name: Z to A</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {results.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
             </div>
           ) : (
             <p className="text-center text-gray-600">

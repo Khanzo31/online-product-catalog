@@ -1,20 +1,9 @@
 // frontend/src/app/dashboard/page.tsx
-
 import Link from "next/link";
 import { format } from "date-fns";
+import { cookies } from "next/headers";
 
-// =================================================================================
-// 1. TYPE DEFINITIONS (UPDATED)
-// =================================================================================
-interface StrapiResponse<T> {
-  data: T[];
-  meta: {
-    pagination: {
-      total: number;
-    };
-  };
-}
-
+// ... (All your type definitions and data fetching functions remain here)
 interface Inquiry {
   id: number;
   CustomerName: string;
@@ -28,24 +17,29 @@ interface Inquiry {
   };
 }
 
-// --- FIX: Add a type for the raw item coming from the API ---
+interface StrapiResponse<T> {
+  data: T[];
+  meta: {
+    pagination: {
+      total: number;
+    };
+  };
+}
+
 interface RawInquiryItem {
   id: number;
+  documentId: string;
   CustomerName: string;
   CustomerEmail: string;
   Message: string;
   createdAt: string;
   Product?: {
-    // The relation field is optional
     id: number;
     documentId: string;
     Name: string;
   };
 }
 
-// =================================================================================
-// 2. DATA FETCHING FUNCTIONS (UPDATED)
-// =================================================================================
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
@@ -54,6 +48,7 @@ const headers = {
 };
 
 async function getStats() {
+  // ... getStats implementation
   try {
     const [productsRes, inquiriesRes] = await Promise.all([
       fetch(`${strapiUrl}/api/products?pagination[pageSize]=1`, { headers }),
@@ -82,6 +77,7 @@ async function getStats() {
 }
 
 async function getRecentInquiries(): Promise<Inquiry[]> {
+  // ... getRecentInquiries implementation
   try {
     const response = await fetch(
       `${strapiUrl}/api/inquiries?sort=createdAt:desc&pagination[limit]=5&populate=Product`,
@@ -94,7 +90,6 @@ async function getRecentInquiries(): Promise<Inquiry[]> {
 
     const responseData = await response.json();
 
-    // --- FIX: Use our new RawInquiryItem type instead of `any` ---
     const inquiries: Inquiry[] = (responseData.data || []).map(
       (item: RawInquiryItem) => ({
         id: item.id,
@@ -116,9 +111,6 @@ async function getRecentInquiries(): Promise<Inquiry[]> {
   }
 }
 
-// =================================================================================
-// 3. STAT CARD COMPONENT (No changes)
-// =================================================================================
 function StatCard({ title, value }: { title: string; value: number }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -128,33 +120,37 @@ function StatCard({ title, value }: { title: string; value: number }) {
   );
 }
 
-// =================================================================================
-// 4. MAIN DASHBOARD PAGE COMPONENT (No changes)
-// =================================================================================
 export default async function DashboardPage() {
+  // Security Gate: Protects the page's data fetching logic.
+  const cookieStore = await cookies();
+  const password = cookieStore.get("dashboard_password")?.value;
+  if (password !== process.env.DASHBOARD_PASSWORD) {
+    return null; // Exit early
+  }
+
+  // This code only runs if the user is authenticated.
   const stats = await getStats();
   const recentInquiries = await getRecentInquiries();
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-8">
-        Admin Dashboard
-      </h1>
-
+      <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-8">
+        Dashboard
+      </h2>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard title="Total Products" value={stats.productCount} />
         <StatCard title="Total Inquiries" value={stats.inquiryCount} />
       </div>
-
       <div className="mt-12">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">
           Recent Inquiries
-        </h2>
+        </h3>
         <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
           <ul role="list" className="divide-y divide-gray-200">
             {recentInquiries.length > 0 ? (
               recentInquiries.map((inquiry) => (
                 <li key={inquiry.id} className="p-4 sm:p-6">
+                  {/* ... inquiry item JSX ... */}
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-indigo-600 truncate">
