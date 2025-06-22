@@ -1,10 +1,6 @@
 // backend/my-strapi-project/config/plugins.ts
 
 export default ({ env }) => ({
-  // --- FIX FOR LOCAL DEVELOPMENT ---
-  // The Cloudinary provider is configured for production and requires API keys.
-  // For local development, we comment it out to make Strapi revert to the
-  // default 'local' upload provider.
   upload: {
     config: {
       provider: "cloudinary",
@@ -14,8 +10,9 @@ export default ({ env }) => ({
         api_secret: env("CLOUDINARY_SECRET"),
       },
       actionOptions: {
+        // --- THIS IS THE CORRECT PLACE ---
         upload: {
-          preset: env("CLOUDINARY_UPLOAD_PRESET"),
+          preset: env("CLOUDINARY_UPLOAD_PRESET"), // <-- Moved here
         },
         delete: {},
       },
