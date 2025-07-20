@@ -45,7 +45,7 @@ async function getProductData(documentId: string): Promise<Product | null> {
   }
 }
 
-// Type for generateMetadata props (this part is correct)
+// This typing for generateMetadata is correct and remains the same.
 type MetadataProps = {
   params: { documentId: string };
 };
@@ -88,14 +88,18 @@ export async function generateMetadata({
   };
 }
 
-// --- START OF FIX: Using explicit, inline typing for the Page component ---
+// --- START OF FINAL FIX ---
+// This signature gives the build system exactly what it is asking for: an object where 'params' is a Promise.
 export default async function ProductPage({
   params,
 }: {
-  params: { documentId: string };
+  params: Promise<{ documentId: string }>;
 }) {
-  // --- END OF FIX ---
-  const product = await getProductData(params.documentId);
+  // We must now await the params promise to resolve before we can use it.
+  const { documentId } = await params;
+
+  const product = await getProductData(documentId);
+  // --- END OF FINAL FIX ---
 
   if (!product) {
     notFound();
