@@ -45,16 +45,14 @@ async function getProductData(documentId: string): Promise<Product | null> {
   }
 }
 
-// --- START OF FIX: This is the corrected 'Props' type ---
-type Props = {
+// Type for generateMetadata props (this part is correct)
+type MetadataProps = {
   params: { documentId: string };
-  // We are NOT using searchParams, but adding the optional property
-  // makes this type fully compatible with Next.js PageProps.
-  searchParams?: { [key: string]: string | string[] | undefined };
 };
-// --- END OF FIX ---
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: MetadataProps): Promise<Metadata> {
   const product = await getProductData(params.documentId);
 
   if (!product) {
@@ -90,7 +88,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ProductPage({ params }: Props) {
+// --- START OF FIX: Using explicit, inline typing for the Page component ---
+export default async function ProductPage({
+  params,
+}: {
+  params: { documentId: string };
+}) {
+  // --- END OF FIX ---
   const product = await getProductData(params.documentId);
 
   if (!product) {
