@@ -5,13 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { MouseEvent } from "react";
 import { useFavorites } from "@/app/context/FavoritesContext";
+import toast from "react-hot-toast"; // --- 1. Import toast ---
 
-// --- FIX: Define a simple image type specifically for the card ---
 interface ProductCardImage {
   url: string;
 }
 
-// This interface now uses the simpler image type
 export interface ProductCardProps {
   id: number;
   documentId: string;
@@ -58,15 +57,19 @@ export default function ProductCard({
 
     if (isFavorited) {
       removeFavorite(documentId);
+      // --- 2. Add toast for removal ---
+      toast.success("Removed from Favorites!");
     } else {
       addFavorite(favoriteItem);
+      // --- 3. Add toast for addition ---
+      toast.success("Added to Favorites!");
     }
   };
 
   return (
     <Link
       href={`/products/${documentId}`}
-      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
     >
       <div className="relative">
         <div className="relative h-56 w-full bg-gray-100">

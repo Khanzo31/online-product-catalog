@@ -9,7 +9,8 @@ export default function Header() {
   const { favoritesCount } = useFavorites();
 
   return (
-    <header className="bg-white shadow-sm border-b py-4">
+    // --- 1. Apply the new warm background color ---
+    <header className="bg-warm-bg shadow-sm border-b py-4">
       <div className="container mx-auto flex flex-col items-center text-center">
         <Link href="/" className="mb-4">
           <Image
@@ -20,7 +21,8 @@ export default function Header() {
             priority
           />
         </Link>
-        <h1 className="text-3xl font-bold tracking-wider text-gray-800 uppercase">
+        {/* --- 2. Apply the new serif font to the main heading --- */}
+        <h1 className="font-serif text-4xl font-bold tracking-wider text-gray-800 uppercase">
           AlpialCanada
         </h1>
         <p className="text-md text-gray-600 mt-1">Antiques & Collectibles</p>
@@ -50,7 +52,6 @@ export default function Header() {
               >
                 Favorites
                 {favoritesCount > 0 && (
-                  // FIXED: Replaced 'bg-brand' with 'bg-red-600'
                   <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-600 text-xs font-medium text-white group-hover:bg-red-700 transition-colors">
                     {favoritesCount}
                   </span>

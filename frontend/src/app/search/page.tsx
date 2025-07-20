@@ -1,7 +1,7 @@
 // frontend/src/app/search/page.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react"; // Removed unused useRef
 import ProductCard, { ProductCardProps } from "@/app/components/ProductCard";
 
 interface ProductType {
@@ -25,19 +25,17 @@ export default function SearchPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [results, setResults] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [customProperties, setCustomProperties] = useState<
     { name: string; type: string }[]
   >([]);
   const [customFilterValues, setCustomFilterValues] =
     useState<CustomFilterValues>({});
-  const [statusMessage, setStatusMessage] = useState(
-    "Enter a keyword or select a type to search for products."
-  );
+  const [statusMessage, setStatusMessage] = useState("Loading all products...");
   const [sortBy, setSortBy] = useState("default");
-  const isInitialMount = useRef(true);
 
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
@@ -53,16 +51,34 @@ export default function SearchPage() {
   }, [searchTerm]);
 
   useEffect(() => {
-    const fetchProductTypes = async () => {
+    const fetchInitialData = async () => {
+      setLoading(true);
       try {
-        const res = await fetch(`${strapiUrl}/api/product-types`);
-        const responseData = await res.json();
-        setProductTypes(responseData.data || []);
+        const [productsRes, typesRes] = await Promise.all([
+          fetch(`${strapiUrl}/api/products?populate=*&sort=createdAt:desc`),
+          fetch(`${strapiUrl}/api/product-types`),
+        ]);
+
+        if (!productsRes.ok || !typesRes.ok) {
+          throw new Error("Failed to fetch initial data");
+        }
+
+        const productsData = await productsRes.json();
+        const typesData = await typesRes.json();
+
+        const fetchedProducts = productsData.data || [];
+        setAllProducts(fetchedProducts);
+        setResults(fetchedProducts);
+        setProductTypes(typesData.data || []);
+        setStatusMessage(`Showing all ${fetchedProducts.length} products.`);
       } catch (error) {
-        console.error("Failed to fetch product types:", error);
+        console.error("Failed to fetch initial data:", error);
+        setStatusMessage("An error occurred while loading products.");
+      } finally {
+        setLoading(false);
       }
     };
-    fetchProductTypes();
+    fetchInitialData();
   }, [strapiUrl]);
 
   useEffect(() => {
@@ -91,87 +107,76 @@ export default function SearchPage() {
     fetchCustomProperties();
   }, [selectedType, strapiUrl]);
 
+  const applyFilters = useCallback(() => {
+    if (loading) return;
+
+    setHasInteracted(true);
+    let filteredProducts = [...allProducts];
+
+    if (debouncedSearchTerm.trim()) {
+      filteredProducts = filteredProducts.filter((product) =>
+        product.Name.toLowerCase().includes(
+          debouncedSearchTerm.trim().toLowerCase()
+        )
+      );
+    }
+
+    if (selectedType) {
+      filteredProducts = filteredProducts.filter(
+        (product) => product.Product?.documentId === selectedType
+      );
+    }
+
+    const activeCustomFilters = Object.entries(customFilterValues).filter(
+      ([, value]) => value.trim() !== ""
+    );
+    if (activeCustomFilters.length > 0) {
+      filteredProducts = filteredProducts.filter((product) => {
+        return activeCustomFilters.every(([key, value]) => {
+          const productValue = product.CustomPropertyValues?.[key];
+          if (productValue === null || productValue === undefined) return false;
+          return productValue
+            .toString()
+            .toLowerCase()
+            .includes(value.trim().toLowerCase());
+        });
+      });
+    }
+
+    setResults(filteredProducts);
+    setStatusMessage(
+      filteredProducts.length > 0
+        ? `Found ${filteredProducts.length} products.`
+        : "No products found for the selected criteria."
+    );
+    setSortBy("default");
+  }, [
+    allProducts,
+    debouncedSearchTerm,
+    selectedType,
+    customFilterValues,
+    loading,
+  ]);
+
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
+    if (
+      debouncedSearchTerm ||
+      selectedType ||
+      Object.values(customFilterValues).some((v) => v)
+    ) {
+      applyFilters();
+    } else if (hasInteracted) {
+      setResults(allProducts);
+      setStatusMessage(`Showing all ${allProducts.length} products.`);
     }
-
-    const hasSearchCriteria =
-      debouncedSearchTerm.trim() !== "" ||
-      selectedType !== "" ||
-      Object.values(customFilterValues).some((v) => v.trim() !== "");
-
-    if (!hasSearchCriteria) {
-      setResults([]);
-      setHasInteracted(false);
-      return;
-    }
-
-    const handleSearch = async () => {
-      setLoading(true);
-      setHasInteracted(true);
-      setResults([]);
-      setStatusMessage("Searching for products...");
-      setSortBy("default");
-
-      const queryParams = new URLSearchParams();
-      if (debouncedSearchTerm.trim()) {
-        queryParams.append(
-          "filters[Name][$containsi]",
-          debouncedSearchTerm.trim()
-        );
-      }
-      queryParams.append("populate", "*");
-      queryParams.append("sort", "createdAt:desc");
-
-      const apiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
-
-      try {
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error("API call to fetch products failed");
-
-        const responseData = await res.json();
-        let products: Product[] = responseData.data || [];
-
-        if (selectedType) {
-          products = products.filter(
-            (product) => product.Product?.documentId === selectedType
-          );
-        }
-        const activeCustomFilters = Object.entries(customFilterValues).filter(
-          ([, value]) => value.trim() !== ""
-        );
-        if (activeCustomFilters.length > 0) {
-          products = products.filter((product) => {
-            return activeCustomFilters.every(([key, value]) => {
-              const productValue = product.CustomPropertyValues?.[key];
-              if (productValue === null || productValue === undefined)
-                return false;
-              return productValue
-                .toString()
-                .toLowerCase()
-                .includes(value.trim().toLowerCase());
-            });
-          });
-        }
-        setResults(products);
-        setStatusMessage(
-          products.length > 0
-            ? `Found ${products.length} products.`
-            : "No products found for the selected criteria."
-        );
-      } catch (error) {
-        console.error(error);
-        setResults([]);
-        setStatusMessage("An error occurred during the search.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    handleSearch();
-  }, [debouncedSearchTerm, selectedType, customFilterValues, strapiUrl]);
+  }, [
+    debouncedSearchTerm,
+    selectedType,
+    customFilterValues,
+    applyFilters,
+    hasInteracted,
+    allProducts,
+  ]);
 
   useEffect(() => {
     if (results.length > 1) {
@@ -200,12 +205,12 @@ export default function SearchPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8 text-center">Search & Filter</h1>
-
+      <h1 className="font-serif text-4xl font-bold mb-8 text-center text-gray-800">
+        Browse Products
+      </h1>
       <div role="status" className="sr-only">
         {statusMessage}
       </div>
-
       <div className="max-w-xl mx-auto mb-12 space-y-4">
         <div>
           <label htmlFor="search-keyword" className="sr-only">
@@ -216,7 +221,7 @@ export default function SearchPage() {
             id="search-keyword"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by keyword..."
+            placeholder="Filter by keyword..."
             className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-red-600 focus:border-red-600"
           />
         </div>
@@ -238,7 +243,6 @@ export default function SearchPage() {
             ))}
           </select>
         </div>
-
         {customProperties.length > 0 && (
           <fieldset className="p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-4">
             <legend className="font-semibold text-gray-700 px-1">
@@ -271,19 +275,12 @@ export default function SearchPage() {
       </div>
 
       <div aria-busy={loading}>
-        {!hasInteracted ? (
-          <p className="text-center text-gray-500">
-            Enter a keyword or select a type to search for products.
-          </p>
-        ) : loading ? (
-          <p className="text-center">Searching...</p>
+        {loading ? (
+          <p className="text-center">Loading products...</p>
         ) : results.length > 0 ? (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <p className="text-sm text-gray-700">
-                Showing {results.length} product
-                {results.length !== 1 ? "s" : ""}.
-              </p>
+              <p className="text-sm text-gray-700">{statusMessage}</p>
               <div>
                 <label htmlFor="sort-by" className="sr-only">
                   Sort by
@@ -302,16 +299,14 @@ export default function SearchPage() {
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-fade-in-up">
               {results.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           </div>
         ) : (
-          <p className="text-center text-gray-600">
-            No products found for the selected criteria.
-          </p>
+          <p className="text-center text-gray-600">{statusMessage}</p>
         )}
       </div>
     </div>

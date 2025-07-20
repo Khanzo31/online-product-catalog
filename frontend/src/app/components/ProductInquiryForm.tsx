@@ -6,11 +6,13 @@ import { useState, FormEvent } from "react";
 interface ProductInquiryFormProps {
   productId: string;
   productName: string;
+  onSuccess?: () => void; // --- 1. Add optional onSuccess callback prop ---
 }
 
 export default function ProductInquiryForm({
   productId,
   productName,
+  onSuccess, // --- 2. Destructure the prop ---
 }: ProductInquiryFormProps) {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -52,10 +54,16 @@ export default function ProductInquiryForm({
       }
 
       setStatus("success");
-      setFeedbackMessage("Thank you! Your inquiry has been sent successfully.");
+      // --- 3. Use a more generic message here, as the toast is now primary ---
+      setFeedbackMessage("Thank you! Your inquiry has been received.");
       setCustomerName("");
       setCustomerEmail("");
       setMessage("");
+
+      // --- 4. Call the onSuccess callback if it exists ---
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       setStatus("error");
       setFeedbackMessage(
@@ -126,9 +134,10 @@ export default function ProductInquiryForm({
           {status === "submitting" ? "Sending..." : "Send Inquiry"}
         </button>
       </div>
-      {feedbackMessage && (
+      {/* --- 5. The inline feedback message is now a fallback --- */}
+      {feedbackMessage && status !== "idle" && (
         <p
-          className={`text-sm ${
+          className={`text-sm mt-2 ${
             status === "error" ? "text-red-600" : "text-green-600"
           }`}
           aria-live="assertive"

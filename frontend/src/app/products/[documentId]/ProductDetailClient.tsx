@@ -1,19 +1,18 @@
 // frontend/src/app/products/[documentId]/ProductDetailClient.tsx
 "use client";
 
-// 1. REMOVED: Unused KeyboardEvent import
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
-import { Product } from "./page"; // Import the shared Product type
-
+import { Product } from "./page";
 import ProductInquiryForm from "@/app/components/ProductInquiryForm";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import RelatedProducts from "@/app/components/RelatedProducts";
 import { ProductCardProps } from "@/app/components/ProductCard";
+// --- REVERT: The InnerImageZoom and its CSS import are removed ---
+import toast from "react-hot-toast";
 
-// Define the type for an image object to be used in function signatures
 interface ProductDetailImage {
   id: number;
   url: string;
@@ -26,7 +25,6 @@ const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
 export default function ProductDetailClient({ product }: { product: Product }) {
-  // 2. REMOVED: Unused setProduct state setter
   const { documentId } = product;
   const [relatedProducts, setRelatedProducts] = useState<ProductCardProps[]>(
     []
@@ -78,6 +76,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
       : undefined;
     if (isFavorite(documentId)) {
       removeFavorite(documentId);
+      toast.success("Removed from Favorites!");
     } else {
       addFavorite({
         documentId,
@@ -85,10 +84,10 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         Price: product.Price,
         imageUrl: favoriteImageUrl,
       });
+      toast.success("Added to Favorites!");
     }
   };
 
-  // 3. ADDED: Explicit types for function parameters
   const handleImageSelect = (image: ProductDetailImage, index: number) => {
     setSelectedImage(image);
     setAnnouncement(
@@ -126,6 +125,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     CustomPropertyValues,
     Product: productType,
   } = product;
+
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "CAD",
@@ -184,6 +184,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         </div>
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
           <div>
+            {/* --- REVERT: Restored the original Next.js Image component and container --- */}
             <div
               role="tabpanel"
               id="gallery-tabpanel"
@@ -249,7 +250,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             </div>
           </div>
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900">
+            <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900">
               {Name}
             </h1>
             <p className="mt-4 text-3xl text-gray-700">
@@ -313,11 +314,15 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 </dl>
               </div>
             )}
-            <div className="mt-10 border-t pt-10">
+            <div className="mt-10 border-t pt-10 p-8 bg-warm-bg rounded-lg">
               <h3 className="text-xl font-semibold mb-4">
                 Interested in this product?
               </h3>
-              <ProductInquiryForm productId={documentId} productName={Name} />
+              <ProductInquiryForm
+                productId={documentId}
+                productName={Name}
+                onSuccess={() => toast.success("Your inquiry has been sent!")}
+              />
             </div>
             <Link
               href="/"
