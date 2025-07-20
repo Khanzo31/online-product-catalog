@@ -1,99 +1,37 @@
 # Project: AlpialCanada Online Product Catalog
 
-This repository contains the source code for a responsive online product catalog website built with a modern Headless (Jamstack) architecture.
+## ✅ Project Status: Live with Known Limitation
 
-## 🚀 Project Status: Functionally Complete & Live
+The website is live and all features are functionally complete and verified on the production domain (`https://www.alpialcanada.com`).
 
-All P1, P2, and P3 user-facing features are now implemented and deployed. The application is live and fully functional on its custom domain, including transactional emails for inquiries. The only remaining tasks are technical SEO enhancements.
+However, the Strapi backend, hosted on the **Render Free Tier**, has a critical performance limitation that prevents the reliable upload of multiple or large images, as documented in `DEVELOPER_NOTES_3.md`.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com)
-[![Deploy with Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
+The current workaround (pre-compressing images and uploading them one-by-one) is not suitable for a production environment.
 
-### Live Demo URLs
+## 🚀 Final Step: Upgrade Backend Hosting Plan
 
-- **Frontend Website:** `https://www.alpialcanada.com`
-- **Backend Admin Panel:** `https://my-strapi-backend-l5qf.onrender.com/admin`
+The final action required to complete this project is to upgrade the backend server to a paid tier to eliminate the image upload bottleneck.
 
----
+### Action Plan
 
-## Technology Stack & Infrastructure
+1.  **Log in** to your account on [Render.com](https://dashboard.render.com/).
+2.  Navigate to the dashboard and select the **`my-strapi-backend`** web service.
+3.  In the service's menu, go to the **"Settings"** tab.
+4.  Under the "Instance Type" section, click **"Change"**.
+5.  Select the **"Starter"** plan (or a higher tier if desired). You will be prompted to add billing information.
+6.  **Confirm** the change. Render will automatically apply the new resources and redeploy the service. This may take a few minutes.
 
-| Component               | Technology / Service | Role & Justification                                                                     |
-| :---------------------- | :------------------- | :--------------------------------------------------------------------------------------- |
-| **Front-End Framework** | **Next.js (React)**  | Builds the user-facing website with server-side rendering for high performance.          |
-| **Styling**             | **Tailwind CSS**     | A utility-first CSS framework for rapid, responsive UI development.                      |
-| **Back-End (CMS)**      | **Strapi**           | Headless CMS providing a user-friendly admin panel and a content API.                    |
-| **Database**            | **PostgreSQL**       | A powerful, open-source relational database for persistent data storage.                 |
-| **Media Storage**       | **Cloudinary**       | A cloud-based service for permanent storage and delivery of image uploads.               |
-| **Email Service**       | **Resend**           | A transactional email API service to ensure reliable delivery of product inquiry emails. |
-| **Front-End Hosting**   | **Vercel**           | A global hosting platform providing continuous deployment from GitHub.                   |
-| **Back-End Hosting**    | **Render**           | A cloud platform used to host the Strapi CMS and PostgreSQL database.                    |
+### Verification
 
----
+Once the Strapi backend has been upgraded and redeployed, the success of the upgrade must be verified:
 
-## Next Steps: Final Enhancements
-
-With all core functionality complete, the final phase involves technical enhancements to maximize the site's visibility and performance.
-
-### 1. SEO Implementation (P1)
-
-These tasks are essential for optimizing the website's visibility in search engines.
-
-- **(NFR-3.2)** Dynamically generate unique `<title>` and `<meta name="description">` tags for each product page using Next.js `generateMetadata`.
-- **(NFR-3.3)** Add structured data (`Product` schema from Schema.org) to product pages for rich snippets.
-- **(NFR-3.4)** Automatically generate a `sitemap.xml` file to help search engines discover all pages.
+1.  Log in to the production Strapi admin panel: `https://my-strapi-backend-l5qf.onrender.com/admin`.
+2.  Navigate to the **Media Library**.
+3.  Attempt to upload **multiple (3-5) high-resolution, uncompressed images** at the same time.
+4.  **Expected Result:** All images upload successfully and appear in the Media Library without any UI errors, browser console errors, or server crashes. The admin panel should remain responsive throughout the process.
 
 ---
 
-## Local Development Setup
+## 🎉 Project Complete
 
-To run this project on a local machine, follow these steps.
-
-### Prerequisites
-
-- Node.js (v18 or later)
-- npm
-- Git
-
-### 1. Backend (Strapi)
-
-```bash
-# 1. Navigate to the backend directory
-cd backend/my-strapi-project
-
-# 2. Create an environment file from the example
-cp .env.example .env
-
-# 3. Fill in the .env file with your local database details,
-#    new secret keys, and your Resend API Key.
-
-# 4. Install dependencies
-npm install
-
-# 5. Run the development server
-npm run develop
-```
-
-The Strapi admin panel will be available at `http://localhost:1337/admin`.
-
-### 2. Frontend (Next.js)
-
-```bash
-# 1. Navigate to the frontend directory
-cd frontend
-
-# 2. Create a local environment file
-cp .env.local.example .env.local
-
-# 3. Edit .env.local to point to your local Strapi instance
-NEXT_PUBLIC_STRAPI_API_URL=http://127.0.0.1:1337
-# ...add other variables like dashboard password
-
-# 4. Install dependencies
-npm install
-
-# 5. Run the development server
-npm run dev
-```
-
-The frontend website will be available at `http://localhost:3000`.
+Once the verification test passes, the project is officially **100% complete**, having met all functional and non-functional requirements without the need for operational workarounds.
