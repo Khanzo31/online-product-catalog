@@ -1,6 +1,6 @@
 # Project Requirements & Technology Stack
 
-This document outlines the requirements for the AlpialCanada Online Product Catalog Website. All listed P1, P2, and P3 requirements have been met.
+This document outlines the requirements for the AlpialCanada Online Product Catalog Website. All listed requirements have been successfully implemented and the project is complete.
 
 ## 1. Project Overview
 
@@ -21,7 +21,7 @@ This document outlines the functional and non-functional requirements for a resp
 | FR-1.4   | Product Management              | P1       | Implemented |
 | FR-1.5   | Product Type Management         | P1       | Implemented |
 | FR-1.7   | Inquiry Management Log          | P1       | Implemented |
-| FR-1.8   | Static Page Management          | P1       | Descoped    |
+| FR-1.8   | Static Page Management          | P1       | Implemented |
 | FR-1.2   | Admin Dashboard                 | P2       | Implemented |
 | FR-1.6   | Product View Counts             | P3       | Implemented |
 | **FR-2** | **Customer / Visitor Features** |          |             |
@@ -29,7 +29,7 @@ This document outlines the functional and non-functional requirements for a resp
 | FR-2.2   | Product Details Page            | P1       | Implemented |
 | FR-2.3   | Product Inquiry Form            | P1       | Implemented |
 | FR-2.4   | Search & Filtering Page         | P1       | Implemented |
-| FR-2.7   | View Static Content             | P1       | Descoped    |
+| FR-2.7   | View Static Content             | P1       | Implemented |
 | FR-2.8   | Cookie Consent Banner           | P1       | Implemented |
 | FR-2.3.1 | Customer Inquiry Confirmation   | P2       | Implemented |
 | FR-2.5   | Product Favoriting              | P3       | Implemented |
