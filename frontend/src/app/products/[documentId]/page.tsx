@@ -1,9 +1,9 @@
 // frontend/src/app/products/[documentId]/page.tsx
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import ProductDetailClient from "./ProductDetailClient"; // 1. Import the new Client Component
+import ProductDetailClient from "./ProductDetailClient";
 
-// --- Type Definitions (can be shared by both components) ---
+// --- Type Definitions ---
 interface ProductDetailImage {
   id: number;
   url: string;
@@ -18,7 +18,6 @@ interface ProductType {
   CustomProperties?: { name: string; type: string }[];
 }
 export interface Product {
-  // Exporting so the client component can use it
   id: number;
   documentId: string;
   Name: string;
@@ -30,7 +29,6 @@ export interface Product {
   Product?: ProductType;
 }
 
-// --- Server-Side Data Fetching and Metadata Generation ---
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
@@ -47,9 +45,14 @@ async function getProductData(documentId: string): Promise<Product | null> {
   }
 }
 
+// --- START OF FIX: This is the corrected 'Props' type ---
 type Props = {
   params: { documentId: string };
+  // We are NOT using searchParams, but adding the optional property
+  // makes this type fully compatible with Next.js PageProps.
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
+// --- END OF FIX ---
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductData(params.documentId);
@@ -87,7 +90,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// --- The Main Page Component (Now a Server Component) ---
 export default async function ProductPage({ params }: Props) {
   const product = await getProductData(params.documentId);
 
@@ -95,6 +97,5 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  // 2. The Server Component renders the Client Component and passes the data as a prop
   return <ProductDetailClient product={product} />;
 }
