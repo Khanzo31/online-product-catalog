@@ -11,7 +11,7 @@ import { useFavorites } from "@/app/context/FavoritesContext";
 import RelatedProducts from "@/app/components/RelatedProducts";
 import { ProductCardProps } from "@/app/components/ProductCard";
 
-// Type Definitions
+// Type Definitions (no changes)
 interface CustomProperty {
   name: string;
   type: "text" | "number" | "boolean";
@@ -71,21 +71,9 @@ export default function ProductDetailPage() {
         ]);
 
         if (!productRes.ok) {
-          const errorBody = await productRes.text();
-          console.error(
-            "Main product fetch failed:",
-            productRes.status,
-            errorBody
-          );
           throw new Error("Failed to fetch main product data");
         }
         if (!allProductsRes.ok) {
-          const errorBody = await allProductsRes.text();
-          console.error(
-            "All products fetch failed:",
-            allProductsRes.status,
-            errorBody
-          );
           throw new Error("Failed to fetch all products for relations");
         }
 
@@ -232,10 +220,7 @@ export default function ProductDetailPage() {
       : `${strapiUrl}${selectedImage.url}`
     : null;
 
-  // --- START OF FIX ---
-  // Helper function to format boolean values with a specific type signature to satisfy the linter.
   const formatValue = (value: string | number | boolean | null | undefined) => {
-    // --- END OF FIX ---
     if (typeof value === "boolean") {
       return value ? "Yes" : "No";
     }
@@ -307,9 +292,9 @@ export default function ProductDetailPage() {
                   onClick={() => handleImageSelect(img, index)}
                   className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
                     selectedImage?.id === img.id
-                      ? "border-blue-500"
+                      ? "border-red-600"
                       : "border-transparent hover:border-gray-400"
-                  } focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}
+                  } focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2`}
                 >
                   <Image
                     src={fullThumbnailUrl}
@@ -333,16 +318,17 @@ export default function ProductDetailPage() {
             <button
               onClick={handleToggleFavorite}
               aria-pressed={isFavorite(documentId)}
+              // FIXED: Replaced 'bg-brand' with 'bg-red-600'
               className={`w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white transition-colors ${
                 isFavorite(documentId)
-                  ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
-                  : "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500"
+                  ? "bg-gray-600 hover:bg-gray-700 focus:ring-gray-500"
+                  : "bg-red-600 hover:bg-red-700 focus:ring-red-600"
               } focus:outline-none focus:ring-2 focus:ring-offset-2`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6 mr-2"
-                fill={isFavorite(documentId) ? "currentColor" : "none"}
+                fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -351,6 +337,8 @@ export default function ProductDetailPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  // FIXED: Reverted to a simpler class-based approach that will now work
+                  className={isFavorite(documentId) ? "fill-current" : ""}
                 />
               </svg>
               {isFavorite(documentId)

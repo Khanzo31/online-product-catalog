@@ -1,3 +1,6 @@
+// frontend/tailwind.config.js
+import typography from "@tailwindcss/typography";
+
 /** @type {import('tailwindcss').Config} */
 const config = {
   content: [
@@ -6,10 +9,11 @@ const config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    // REMOVED: The entire extend block with the custom 'brand' color is gone.
+    // We will use standard Tailwind colors like 'red-600'.
     extend: {},
   },
-  // The plugins array should be empty again
-  plugins: [],
+  plugins: [typography],
 };
 
 export default config;

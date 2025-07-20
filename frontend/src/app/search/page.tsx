@@ -1,10 +1,9 @@
 // frontend/src/app/search/page.tsx
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useRef } from "react";
 import ProductCard, { ProductCardProps } from "@/app/components/ProductCard";
 
-// Type Definitions (no changes)
 interface ProductType {
   id: number;
   documentId: string;
@@ -22,13 +21,13 @@ interface CustomFilterValues {
 }
 
 export default function SearchPage() {
-  // State variables (one new state added)
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [customProperties, setCustomProperties] = useState<
     { name: string; type: string }[]
   >([]);
@@ -37,13 +36,22 @@ export default function SearchPage() {
   const [statusMessage, setStatusMessage] = useState(
     "Enter a keyword or select a type to search for products."
   );
-  // --- NEW: State for sorting ---
   const [sortBy, setSortBy] = useState("default");
+  const isInitialMount = useRef(true);
 
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
-  // Data fetching useEffects (no changes)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
+
   useEffect(() => {
     const fetchProductTypes = async () => {
       try {
@@ -83,69 +91,88 @@ export default function SearchPage() {
     fetchCustomProperties();
   }, [selectedType, strapiUrl]);
 
-  // Main search handler (no changes)
-  const handleSearch = async (e?: FormEvent) => {
-    if (e) e.preventDefault();
-    setLoading(true);
-    setSearched(true);
-    setResults([]);
-    setStatusMessage("Searching for products...");
-    // --- NEW: Reset sort on new search ---
-    setSortBy("default");
-
-    const queryParams = new URLSearchParams();
-    if (searchTerm.trim()) {
-      queryParams.append("filters[Name][$containsi]", searchTerm.trim());
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
     }
-    queryParams.append("populate", "*");
-    queryParams.append("sort", "createdAt:desc");
 
-    const apiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
+    const hasSearchCriteria =
+      debouncedSearchTerm.trim() !== "" ||
+      selectedType !== "" ||
+      Object.values(customFilterValues).some((v) => v.trim() !== "");
 
-    try {
-      const res = await fetch(apiUrl);
-      if (!res.ok) throw new Error("API call to fetch products failed");
+    if (!hasSearchCriteria) {
+      setResults([]);
+      setHasInteracted(false);
+      return;
+    }
 
-      const responseData = await res.json();
-      let products: Product[] = responseData.data || [];
+    const handleSearch = async () => {
+      setLoading(true);
+      setHasInteracted(true);
+      setResults([]);
+      setStatusMessage("Searching for products...");
+      setSortBy("default");
 
-      if (selectedType) {
-        products = products.filter(
-          (product) => product.Product?.documentId === selectedType
+      const queryParams = new URLSearchParams();
+      if (debouncedSearchTerm.trim()) {
+        queryParams.append(
+          "filters[Name][$containsi]",
+          debouncedSearchTerm.trim()
         );
       }
-      const activeCustomFilters = Object.entries(customFilterValues).filter(
-        ([, value]) => value.trim() !== ""
-      );
-      if (activeCustomFilters.length > 0) {
-        products = products.filter((product) => {
-          return activeCustomFilters.every(([key, value]) => {
-            const productValue = product.CustomPropertyValues?.[key];
-            if (productValue === null || productValue === undefined)
-              return false;
-            return productValue
-              .toString()
-              .toLowerCase()
-              .includes(value.trim().toLowerCase());
-          });
-        });
-      }
-      setResults(products);
-      setStatusMessage(
-        products.length > 0
-          ? `Found ${products.length} products.`
-          : "No products found for the selected criteria."
-      );
-    } catch (error) {
-      console.error(error);
-      setResults([]);
-      setStatusMessage("An error occurred during the search.");
-    } finally {
-      setLoading(false);
-    }
-  };
+      queryParams.append("populate", "*");
+      queryParams.append("sort", "createdAt:desc");
 
-  // --- NEW: useEffect to handle sorting when 'sortBy' or 'results' change ---
+      const apiUrl = `${strapiUrl}/api/products?${queryParams.toString()}`;
+
+      try {
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error("API call to fetch products failed");
+
+        const responseData = await res.json();
+        let products: Product[] = responseData.data || [];
+
+        if (selectedType) {
+          products = products.filter(
+            (product) => product.Product?.documentId === selectedType
+          );
+        }
+        const activeCustomFilters = Object.entries(customFilterValues).filter(
+          ([, value]) => value.trim() !== ""
+        );
+        if (activeCustomFilters.length > 0) {
+          products = products.filter((product) => {
+            return activeCustomFilters.every(([key, value]) => {
+              const productValue = product.CustomPropertyValues?.[key];
+              if (productValue === null || productValue === undefined)
+                return false;
+              return productValue
+                .toString()
+                .toLowerCase()
+                .includes(value.trim().toLowerCase());
+            });
+          });
+        }
+        setResults(products);
+        setStatusMessage(
+          products.length > 0
+            ? `Found ${products.length} products.`
+            : "No products found for the selected criteria."
+        );
+      } catch (error) {
+        console.error(error);
+        setResults([]);
+        setStatusMessage("An error occurred during the search.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    handleSearch();
+  }, [debouncedSearchTerm, selectedType, customFilterValues, strapiUrl]);
+
   useEffect(() => {
     if (results.length > 1) {
       const sortedResults = [...results].sort((a, b) => {
@@ -159,16 +186,14 @@ export default function SearchPage() {
           case "name-desc":
             return b.Name.localeCompare(a.Name);
           default:
-            return 0; // 'default' does not re-sort
+            return 0;
         }
       });
-      // This check prevents an infinite loop
       if (JSON.stringify(sortedResults) !== JSON.stringify(results)) {
         setResults(sortedResults);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortBy]); // We only want this to run when the user changes the sort option
+  }, [sortBy, results]);
 
   const selectedTypeName =
     productTypes.find((pt) => pt.documentId === selectedType)?.Name || "";
@@ -181,11 +206,7 @@ export default function SearchPage() {
         {statusMessage}
       </div>
 
-      {/* --- Search Form (no changes) --- */}
-      <form
-        onSubmit={handleSearch}
-        className="max-w-xl mx-auto mb-12 space-y-4"
-      >
+      <div className="max-w-xl mx-auto mb-12 space-y-4">
         <div>
           <label htmlFor="search-keyword" className="sr-only">
             Search by keyword
@@ -196,7 +217,7 @@ export default function SearchPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by keyword..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-red-600 focus:border-red-600"
           />
         </div>
         <div>
@@ -207,7 +228,7 @@ export default function SearchPage() {
             id="product-type"
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-red-600 focus:border-red-600"
           >
             <option value="">All Product Types</option>
             {productTypes.map((type) => (
@@ -241,69 +262,55 @@ export default function SearchPage() {
                       [prop.name]: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-600 focus:border-red-600"
                 />
               </div>
             ))}
           </fieldset>
         )}
+      </div>
 
-        <div className="text-center">
-          <button
-            type="submit"
-            className="bg-indigo-600 text-white px-8 py-2 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
-          >
-            Search
-          </button>
-        </div>
-      </form>
-
-      {/* --- Results Section --- */}
       <div aria-busy={loading}>
-        {loading ? (
-          <p className="text-center">Searching...</p>
-        ) : searched ? (
-          results.length > 0 ? (
-            <div>
-              {/* --- NEW: Sorting Dropdown --- */}
-              <div className="flex justify-between items-center mb-6">
-                <p className="text-sm text-gray-700">
-                  Showing {results.length} product
-                  {results.length !== 1 ? "s" : ""}.
-                </p>
-                <div>
-                  <label htmlFor="sort-by" className="sr-only">
-                    Sort by
-                  </label>
-                  <select
-                    id="sort-by"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                  >
-                    <option value="default">Sort by Relevance</option>
-                    <option value="price-asc">Price: Low to High</option>
-                    <option value="price-desc">Price: High to Low</option>
-                    <option value="name-asc">Name: A to Z</option>
-                    <option value="name-desc">Name: Z to A</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {results.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-center text-gray-600">
-              No products found for the selected criteria.
-            </p>
-          )
-        ) : (
+        {!hasInteracted ? (
           <p className="text-center text-gray-500">
             Enter a keyword or select a type to search for products.
+          </p>
+        ) : loading ? (
+          <p className="text-center">Searching...</p>
+        ) : results.length > 0 ? (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-sm text-gray-700">
+                Showing {results.length} product
+                {results.length !== 1 ? "s" : ""}.
+              </p>
+              <div>
+                <label htmlFor="sort-by" className="sr-only">
+                  Sort by
+                </label>
+                <select
+                  id="sort-by"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-600 focus:border-red-600 sm:text-sm rounded-md"
+                >
+                  <option value="default">Sort by Relevance</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="name-asc">Name: A to Z</option>
+                  <option value="name-desc">Name: Z to A</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {results.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-center text-gray-600">
+            No products found for the selected criteria.
           </p>
         )}
       </div>

@@ -40,14 +40,12 @@ export default function ProductInquiryForm({
             CustomerName: customerName,
             CustomerEmail: customerEmail,
             Message: message,
-            // FIX: The API ID for the relation is "Product" (uppercase P), matching the Strapi setup.
             Product: productId,
           },
         }),
       });
 
       if (!res.ok) {
-        // Log the detailed error from Strapi for better debugging
         const errorData = await res.json();
         console.error("Inquiry submission failed:", errorData);
         throw new Error("Failed to submit inquiry. Please try again later.");
@@ -81,7 +79,7 @@ export default function ProductInquiryForm({
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600"
         />
       </div>
       <div>
@@ -97,7 +95,7 @@ export default function ProductInquiryForm({
           value={customerEmail}
           onChange={(e) => setCustomerEmail(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600"
         />
       </div>
       <div>
@@ -113,7 +111,7 @@ export default function ProductInquiryForm({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600"
         ></textarea>
       </div>
       <p className="text-sm text-gray-500">
@@ -123,7 +121,7 @@ export default function ProductInquiryForm({
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300"
+          className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 disabled:bg-red-300"
         >
           {status === "submitting" ? "Sending..." : "Send Inquiry"}
         </button>

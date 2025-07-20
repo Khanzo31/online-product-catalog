@@ -1,8 +1,6 @@
 // frontend/src/app/dashboard/LoginForm.tsx
-
 "use client";
 
-// --- FIX: Import hooks from their correct libraries ---
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { authenticate } from "@/app/dashboard/actions";
@@ -13,7 +11,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:bg-indigo-300"
+      className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 disabled:bg-red-300"
     >
       {pending ? "Signing In..." : "Sign In"}
     </button>
@@ -42,7 +40,7 @@ export default function LoginForm() {
               id="password"
               name="password"
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-600 focus:border-red-600"
             />
           </div>
 

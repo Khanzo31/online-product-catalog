@@ -1,6 +1,6 @@
 # Project Requirements & Technology Stack
 
-This document contains the original project specification for the Online Product Catalog Website.
+This document contains the original project specification for the AlpialCanada Online Product Catalog Website.
 
 ## 1. Project Overview
 
@@ -28,7 +28,7 @@ Functional requirements define the specific features and behaviors of the system
 | FR-1.4   | Product Management              | P1       | The administrator can view a list of all products and perform Edit or Delete operations on each.                                                   |
 | FR-1.5   | Product Type Management         | P1       | The administrator can create, edit, and delete "Product Types" and define unique custom properties for each type.                                  |
 | FR-1.7   | Inquiry Management Log          | P1       | The admin panel must contain a log of all customer inquiries submitted through the site, serving as a reliable backup to email.                    |
-| FR-1.8   | Static Page Management          | P1       | The administrator can create, edit, and delete simple content pages (e.g., "About Us," "Privacy Policy") using a rich-text editor.                 |
+| FR-1.8   | Static Page Management          | P1       | **[DESCOPED]** This requirement for "About Us" and "Privacy Policy" pages was removed from the project scope.                                      |
 | FR-1.2   | Admin Dashboard                 | P2       | A summary screen for the administrator showing key metrics like recent inquiries.                                                                  |
 | FR-1.6   | Product View Counts             | P3       | The administrator can see a simple view counter on each individual product page.                                                                   |
 | **FR-2** | **Customer / Visitor Features** |          |                                                                                                                                                    |
@@ -36,7 +36,7 @@ Functional requirements define the specific features and behaviors of the system
 | FR-2.2   | Product Details Page            | P1       | A dedicated page for each product showing all its details, custom properties, and images.                                                          |
 | FR-2.3   | Product Inquiry Form            | P1       | A form on each product page for customers to submit their name, email, and a message. The form will reference the product being inquired about.    |
 | FR-2.4   | Search & Filtering Page         | P1       | A page where customers can search by keyword and filter results by Product Type and the custom properties associated with that type.               |
-| FR-2.7   | View Static Content             | P1       | Customers can access and read static content pages created by the administrator.                                                                   |
+| FR-2.7   | View Static Content             | P1       | **[DESCOPED]** This requirement was removed from the project scope.                                                                                |
 | FR-2.8   | Cookie Consent Banner           | P1       | On first visit, a banner must inform users about the use of cookies/local storage for site functionality and analytics, and request their consent. |
 | FR-2.3.1 | Customer Inquiry Confirmation   | P2       | An automated confirmation email is sent to the customer after they successfully submit an inquiry.                                                 |
 | FR-2.5   | Product Favoriting              | P3       | Customers can save a product to a personal "Favorites" list that persists in their browser.                                                        |
@@ -78,6 +78,6 @@ Non-functional requirements define the quality attributes and technical standard
 | **Styling**             | **Tailwind CSS**    | A utility-first CSS framework for rapidly building custom, responsive user interfaces.                                             |
 | **Back-End (CMS)**      | **Strapi**          | A headless Content Management System that provides a user-friendly admin panel and a content API.                                  |
 | **Database**            | **PostgreSQL**      | A powerful, open-source relational database used by Strapi.                                                                        |
-| **Front-End Hosting**   | **Vercel**          | A global hosting platform optimized for Next.js.                                                                                   |
+| **Front-End Hosting**   | **Vercel**          | A global hosting platform optimized for Next.js, serving the site on the `alpialcanada.com` custom domain.                         |
 | **Back-End Hosting**    | **Render**          | A cloud platform used to host the Strapi CMS and PostgreSQL database.                                                              |
 | **Email Service**       | **Resend**          | A transactional email API service to ensure reliable delivery of product inquiry emails.                                           |
