@@ -45,15 +45,20 @@ async function getProductData(documentId: string): Promise<Product | null> {
   }
 }
 
-// This typing for generateMetadata is correct and remains the same.
-type MetadataProps = {
-  params: { documentId: string };
+// --- START OF FINAL FIX ---
+// 1. Define the props type that the build system is demanding.
+type PagePromiseProps = {
+  params: Promise<{ documentId: string }>;
 };
 
+// 2. Apply this type to the generateMetadata function.
 export async function generateMetadata({
   params,
-}: MetadataProps): Promise<Metadata> {
-  const product = await getProductData(params.documentId);
+}: PagePromiseProps): Promise<Metadata> {
+  // 3. Await the promise to get the actual params object.
+  const { documentId } = await params;
+  const product = await getProductData(documentId);
+  // --- END OF FINAL FIX ---
 
   if (!product) {
     return {
@@ -88,18 +93,11 @@ export async function generateMetadata({
   };
 }
 
-// --- START OF FINAL FIX ---
-// This signature gives the build system exactly what it is asking for: an object where 'params' is a Promise.
-export default async function ProductPage({
-  params,
-}: {
-  params: Promise<{ documentId: string }>;
-}) {
-  // We must now await the params promise to resolve before we can use it.
+// 4. Apply the SAME props type to the main page component.
+export default async function ProductPage({ params }: PagePromiseProps) {
+  // 5. Await the promise here as well.
   const { documentId } = await params;
-
   const product = await getProductData(documentId);
-  // --- END OF FINAL FIX ---
 
   if (!product) {
     notFound();
