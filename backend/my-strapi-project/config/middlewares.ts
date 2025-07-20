@@ -33,13 +33,16 @@ export default [
     name: "strapi::cors",
     config: {
       headers: "*",
-      // This origin array is correctly configured for both local dev and production.
-      // It includes the necessary localhost URLs.
+      // This origin array has been updated for your new custom domain.
       origin: [
         "http://localhost:3000", // Local Next.js frontend
         "http://localhost:1337", // Local Strapi Admin
         "https://my-strapi-backend-l5qf.onrender.com", // Production Backend
-        "https://online-product-catalog.vercel.app", // Production Frontend
+        "https://online-product-catalog.vercel.app", // Old Production Frontend
+        // --- START OF FIX: Add your new production domain ---
+        "https://www.alpialcanada.com",
+        "https://alpialcanada.com",
+        // --- END OF FIX ---
         /^https:\/\/online-product-catalog-.*\.vercel\.app$/, // Vercel Preview/Branch Deploys
       ],
     },
