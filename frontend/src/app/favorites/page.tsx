@@ -68,7 +68,8 @@ export default function FavoritesPage() {
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-10 text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900">
+        {/* UPDATED: Added font-serif to the h1 */}
+        <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900">
           Your Favorites
         </h1>
         {favorites.length > 0 && (
@@ -101,14 +102,14 @@ export default function FavoritesPage() {
               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
             />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
+          {/* UPDATED: Added font-serif to the h3 */}
+          <h3 className="mt-2 font-serif text-lg font-medium text-gray-900">
             No favorites yet
           </h3>
           <p className="mt-1 text-sm text-gray-500">
             You haven’t added any products to your favorites.
           </p>
           <div className="mt-6">
-            {/* UPDATED: Changed indigo button classes to red to match site theme */}
             <Link
               href="/search"
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"

@@ -2,7 +2,6 @@
 import type { Metadata } from "next";
 import { Inter, Lora } from "next/font/google";
 import "./globals.css";
-// --- 1. Import the Toaster component ---
 import { Toaster } from "react-hot-toast";
 
 // Import core components
@@ -38,10 +37,10 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${lora.variable}`}>
       <body className="flex flex-col min-h-screen font-sans">
         <FavoritesProvider>
-          {/* --- 2. Add the Toaster component here --- */}
           <Toaster position="bottom-right" />
           <SuspenseWrapper />
           <Header />
+          {/* The incorrect spacer div has been removed from here. */}
           <main className="flex-grow">{children}</main>
           <Footer />
           <CookieConsentBanner />

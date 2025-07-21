@@ -272,7 +272,7 @@ export default function SearchPage() {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
         <aside className="lg:col-span-1">
-          <div className="sticky top-28 space-y-6 bg-white p-6 rounded-lg shadow-sm border">
+          <div className="sticky top-36 space-y-6 bg-white p-6 rounded-lg shadow-sm border">
             <h2 className="text-xl font-semibold font-serif text-gray-800 border-b pb-3">
               Filters
             </h2>
@@ -391,7 +391,6 @@ export default function SearchPage() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-600 focus:border-red-600 sm:text-sm rounded-md"
                 >
-                  {/* --- THIS IS THE FIX --- */}
                   <option value="default" disabled>
                     Sort by
                   </option>
@@ -427,7 +426,8 @@ export default function SearchPage() {
             </>
           ) : (
             <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800">
+              {/* UPDATED: Added font-serif to the h3 */}
+              <h3 className="font-serif text-lg font-semibold text-gray-800">
                 No Products Found
               </h3>
               <p className="mt-1 text-gray-600">

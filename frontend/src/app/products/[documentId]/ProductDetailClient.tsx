@@ -76,7 +76,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         : imageUrl
       : undefined;
 
-    // --- UPDATED: Custom toast notifications for detail page ---
     if (isFavorite(documentId)) {
       removeFavorite(documentId);
       toast("Removed from Favorites!", {
@@ -357,19 +356,18 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             </div>
 
             <div className="mt-10 border shadow-sm pt-10 p-8 bg-white rounded-lg">
-              <h3 className="text-xl font-semibold mb-4">
+              <h3 className="text-xl font-serif font-semibold mb-4">
                 Interested in this product?
               </h3>
               <ProductInquiryForm
                 productId={documentId}
                 productName={Name}
-                // --- UPDATED: Custom toast for inquiry success ---
                 onSuccess={() =>
                   toast("Your inquiry has been sent!", {
                     icon: "✅",
                     style: {
                       borderRadius: "10px",
-                      background: "#dc2626", // red-600
+                      background: "#dc2626",
                       color: "#ffffff",
                     },
                   })

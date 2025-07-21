@@ -1,5 +1,6 @@
 // frontend/src/app/page.tsx
 import Image from "next/image";
+import Link from "next/link"; // <-- Import Link
 
 export default function HomePage() {
   const images = [
@@ -50,6 +51,17 @@ export default function HomePage() {
           </div>
         ))}
       </div>
+
+      {/* --- NEW CALL-TO-ACTION SECTION --- */}
+      <div className="text-center mt-16">
+        <Link
+          href="/search"
+          className="bg-red-600 text-white px-10 py-4 rounded-lg text-xl font-semibold hover:bg-red-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+        >
+          Browse All Products
+        </Link>
+      </div>
+      {/* --- END OF NEW SECTION --- */}
     </main>
   );
 }

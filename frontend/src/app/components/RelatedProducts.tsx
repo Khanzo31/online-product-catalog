@@ -14,7 +14,8 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
 
   return (
     <div className="mt-16">
-      <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+      {/* UPDATED: Added font-serif to the h2 */}
+      <h2 className="font-serif text-2xl font-bold tracking-tight text-gray-900">
         You might also like
       </h2>
       <div className="mt-6 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
