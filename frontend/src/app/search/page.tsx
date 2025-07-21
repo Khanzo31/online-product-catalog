@@ -38,7 +38,6 @@ interface StrapiApiResponse<T> {
 const PAGE_SIZE = 12; // Increased for a wider grid
 
 export default function SearchPage() {
-  // --- All state and refs remain the same ---
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -60,7 +59,6 @@ export default function SearchPage() {
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
-  // --- All useEffect and data fetching logic remains the same ---
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -226,7 +224,6 @@ export default function SearchPage() {
     }
   }, [sortBy, results]);
 
-  // --- NEW: Helper functions to clear filters ---
   const handleClearSearch = () => setSearchTerm("");
   const handleClearType = () => setSelectedType("");
   const handleClearCustomFilter = (key: string) => {
@@ -245,7 +242,6 @@ export default function SearchPage() {
   const selectedTypeName =
     productTypes.find((pt) => pt.documentId === selectedType)?.Name || "";
 
-  // --- NEW: Generate active filter "pills" for display ---
   const activeFilters = [];
   if (debouncedSearchTerm) {
     activeFilters.push({
@@ -268,7 +264,6 @@ export default function SearchPage() {
     }
   });
 
-  // --- START: UPDATED JSX with two-column layout ---
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="font-serif text-4xl font-bold mb-8 text-center text-gray-800">
@@ -276,14 +271,11 @@ export default function SearchPage() {
       </h1>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-        {/* --- Filters Sidebar (Left Column) --- */}
         <aside className="lg:col-span-1">
           <div className="sticky top-28 space-y-6 bg-white p-6 rounded-lg shadow-sm border">
             <h2 className="text-xl font-semibold font-serif text-gray-800 border-b pb-3">
               Filters
             </h2>
-
-            {/* Keyword Search */}
             <div>
               <label
                 htmlFor="search-keyword"
@@ -301,7 +293,6 @@ export default function SearchPage() {
               />
             </div>
 
-            {/* Product Type Filter */}
             <div>
               <label
                 htmlFor="product-type"
@@ -324,7 +315,6 @@ export default function SearchPage() {
               </select>
             </div>
 
-            {/* Custom Properties Filters */}
             {customProperties.length > 0 && (
               <fieldset className="p-4 border border-gray-200 rounded-lg bg-gray-50/50 space-y-4">
                 <legend className="font-semibold text-gray-700 px-1">
@@ -355,7 +345,6 @@ export default function SearchPage() {
               </fieldset>
             )}
 
-            {/* Clear All Button */}
             {activeFilters.length > 0 && (
               <button
                 onClick={handleClearAll}
@@ -367,9 +356,7 @@ export default function SearchPage() {
           </div>
         </aside>
 
-        {/* --- Main Content Area (Right Column) --- */}
         <main className="lg:col-span-3">
-          {/* Active Filter Pills */}
           {activeFilters.length > 0 && (
             <div className="mb-6 flex flex-wrap gap-2 items-center">
               <span className="text-sm font-semibold">Active:</span>
@@ -391,7 +378,6 @@ export default function SearchPage() {
             </div>
           )}
 
-          {/* Results Header: Status and Sorting */}
           {!loading && results.length > 0 && (
             <div className="flex justify-between items-center mb-6">
               <p className="text-sm text-gray-700">{statusMessage}</p>
@@ -405,7 +391,10 @@ export default function SearchPage() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-600 focus:border-red-600 sm:text-sm rounded-md"
                 >
-                  <option value="default">Sort by</option>
+                  {/* --- THIS IS THE FIX --- */}
+                  <option value="default" disabled>
+                    Sort by
+                  </option>
                   <option value="price-asc">Price: Low to High</option>
                   <option value="price-desc">Price: High to Low</option>
                   <option value="name-asc">Name: A to Z</option>
@@ -415,7 +404,6 @@ export default function SearchPage() {
             </div>
           )}
 
-          {/* Loading / Results Grid */}
           {loading ? (
             <p className="text-center py-16">Loading...</p>
           ) : results.length > 0 ? (

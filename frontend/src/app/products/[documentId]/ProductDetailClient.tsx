@@ -10,7 +10,6 @@ import ProductInquiryForm from "@/app/components/ProductInquiryForm";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import RelatedProducts from "@/app/components/RelatedProducts";
 import { ProductCardProps } from "@/app/components/ProductCard";
-// --- REVERT: The InnerImageZoom and its CSS import are removed ---
 import toast from "react-hot-toast";
 
 interface ProductDetailImage {
@@ -35,6 +34,8 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const [announcement, setAnnouncement] = useState("");
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
+
+  const [activeTab, setActiveTab] = useState("description");
 
   useEffect(() => {
     const fetchRelatedProducts = async () => {
@@ -74,9 +75,18 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         ? new URL(imageUrl).pathname
         : imageUrl
       : undefined;
+
+    // --- UPDATED: Custom toast notifications for detail page ---
     if (isFavorite(documentId)) {
       removeFavorite(documentId);
-      toast.success("Removed from Favorites!");
+      toast("Removed from Favorites!", {
+        icon: "✅",
+        style: {
+          borderRadius: "10px",
+          background: "#4b5563", // gray-600
+          color: "#ffffff",
+        },
+      });
     } else {
       addFavorite({
         documentId,
@@ -84,7 +94,14 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         Price: product.Price,
         imageUrl: favoriteImageUrl,
       });
-      toast.success("Added to Favorites!");
+      toast("Added to Favorites!", {
+        icon: "❤️",
+        style: {
+          borderRadius: "10px",
+          background: "#dc2626", // red-600
+          color: "#ffffff",
+        },
+      });
     }
   };
 
@@ -146,13 +163,15 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     return value?.toString();
   };
 
-  const propertiesToRender = productType?.CustomProperties?.map((propDef) => ({
-    name: propDef.name,
-    value: CustomPropertyValues?.[propDef.name],
-  })).filter(
-    (prop) =>
-      prop.value !== undefined && prop.value !== null && prop.value !== ""
-  );
+  const propertiesToRender = (productType?.CustomProperties || [])
+    .map((propDef) => ({
+      name: propDef.name,
+      value: CustomPropertyValues?.[propDef.name],
+    }))
+    .filter(
+      (prop) =>
+        prop.value !== undefined && prop.value !== null && prop.value !== ""
+    );
 
   const productJsonLd = {
     "@context": "https://schema.org/",
@@ -184,7 +203,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         </div>
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
           <div>
-            {/* --- REVERT: Restored the original Next.js Image component and container --- */}
             <div
               role="tabpanel"
               id="gallery-tabpanel"
@@ -286,42 +304,76 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                   : "Add to Favorites"}
               </button>
             </div>
-            <div className="mt-6">
-              <h2
-                id="description-heading"
-                className="text-lg font-medium text-gray-900"
-              >
-                Description
-              </h2>
-              <article className="prose lg:prose-lg mt-2 max-w-none text-gray-600">
-                <ReactMarkdown>{Description}</ReactMarkdown>
-              </article>
-            </div>
-            {propertiesToRender && propertiesToRender.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Specifications
-                </h2>
-                <dl className="mt-4 space-y-4 text-base text-gray-600">
-                  {propertiesToRender.map((prop) => (
-                    <div key={prop.name} className="flex gap-4">
-                      <dt className="font-medium text-gray-900 w-1/3">
-                        {prop.name}
-                      </dt>
-                      <dd className="w-2/3">{formatValue(prop.value)}</dd>
-                    </div>
-                  ))}
-                </dl>
+
+            <div className="mt-8">
+              <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                  <button
+                    onClick={() => setActiveTab("description")}
+                    className={`${
+                      activeTab === "description"
+                        ? "border-red-600 text-red-700"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  >
+                    Description
+                  </button>
+                  {propertiesToRender && propertiesToRender.length > 0 && (
+                    <button
+                      onClick={() => setActiveTab("specs")}
+                      className={`${
+                        activeTab === "specs"
+                          ? "border-red-600 text-red-700"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                    >
+                      Specifications
+                    </button>
+                  )}
+                </nav>
               </div>
-            )}
-            <div className="mt-10 border-t pt-10 p-8 bg-warm-bg rounded-lg">
+
+              <div className="mt-6">
+                {activeTab === "description" && (
+                  <article className="prose lg:prose-lg max-w-none text-gray-600 animate-fade-in-up">
+                    <ReactMarkdown>{Description}</ReactMarkdown>
+                  </article>
+                )}
+                {activeTab === "specs" && (
+                  <div className="animate-fade-in-up">
+                    <dl className="space-y-4 text-base text-gray-600">
+                      {propertiesToRender.map((prop) => (
+                        <div key={prop.name} className="flex gap-4">
+                          <dt className="font-medium text-gray-900 w-1/3">
+                            {prop.name}
+                          </dt>
+                          <dd className="w-2/3">{formatValue(prop.value)}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-10 border shadow-sm pt-10 p-8 bg-white rounded-lg">
               <h3 className="text-xl font-semibold mb-4">
                 Interested in this product?
               </h3>
               <ProductInquiryForm
                 productId={documentId}
                 productName={Name}
-                onSuccess={() => toast.success("Your inquiry has been sent!")}
+                // --- UPDATED: Custom toast for inquiry success ---
+                onSuccess={() =>
+                  toast("Your inquiry has been sent!", {
+                    icon: "✅",
+                    style: {
+                      borderRadius: "10px",
+                      background: "#dc2626", // red-600
+                      color: "#ffffff",
+                    },
+                  })
+                }
               />
             </div>
             <Link

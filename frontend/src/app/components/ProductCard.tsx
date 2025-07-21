@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { MouseEvent } from "react";
 import { useFavorites } from "@/app/context/FavoritesContext";
-import toast from "react-hot-toast"; // --- 1. Import toast ---
+import toast from "react-hot-toast";
 
 interface ProductCardImage {
   url: string;
@@ -55,14 +55,27 @@ export default function ProductCard({
       imageUrl: relativeImageUrl,
     };
 
+    // --- UPDATED: Custom toast notifications ---
     if (isFavorited) {
       removeFavorite(documentId);
-      // --- 2. Add toast for removal ---
-      toast.success("Removed from Favorites!");
+      toast("Removed from Favorites!", {
+        icon: "✅",
+        style: {
+          borderRadius: "10px",
+          background: "#4b5563", // gray-600
+          color: "#ffffff",
+        },
+      });
     } else {
       addFavorite(favoriteItem);
-      // --- 3. Add toast for addition ---
-      toast.success("Added to Favorites!");
+      toast("Added to Favorites!", {
+        icon: "❤️",
+        style: {
+          borderRadius: "10px",
+          background: "#dc2626", // red-600
+          color: "#ffffff",
+        },
+      });
     }
   };
 

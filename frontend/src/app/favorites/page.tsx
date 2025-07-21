@@ -12,7 +12,6 @@ function FavoriteProductCard({ product }: { product: FavoriteItem }) {
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
-  // --- DEFINITIVE FIX: Universal Image URL Logic ---
   const fullImageUrl = imageUrl
     ? imageUrl.startsWith("http")
       ? imageUrl
@@ -28,9 +27,9 @@ function FavoriteProductCard({ product }: { product: FavoriteItem }) {
     <div className="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
       <Link href={`/products/${documentId}`} className="block">
         <div className="aspect-square bg-gray-200 group-hover:opacity-75">
-          {fullImageUrl ? ( // Use the new variable
+          {fullImageUrl ? (
             <Image
-              src={fullImageUrl} // Use the new variable
+              src={fullImageUrl}
               alt={Name || "Product Image"}
               width={400}
               height={400}
@@ -63,7 +62,6 @@ function FavoriteProductCard({ product }: { product: FavoriteItem }) {
   );
 }
 
-// --- The rest of the file remains unchanged ---
 export default function FavoritesPage() {
   const { favorites } = useFavorites();
 
@@ -110,9 +108,10 @@ export default function FavoritesPage() {
             You haven’t added any products to your favorites.
           </p>
           <div className="mt-6">
+            {/* UPDATED: Changed indigo button classes to red to match site theme */}
             <Link
               href="/"
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               Browse Products
             </Link>
