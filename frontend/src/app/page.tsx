@@ -1,124 +1,100 @@
 // frontend/src/app/page.tsx
-"use client";
-
-import { useState, useEffect } from "react";
-import ProductCard from "@/app/components/ProductCard";
-import { ProductCardProps } from "@/app/components/ProductCard";
-
-const PAGE_SIZE = 8;
+import Image from "next/image";
 
 export default function HomePage() {
-  const [products, setProducts] = useState<ProductCardProps[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loadingInitial, setLoadingInitial] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-
-  const strapiUrl =
-    process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
-
-  // Effect for the initial page load
-  useEffect(() => {
-    // --- START: THE FIX ---
-    // Move the data-fetching function inside the useEffect hook.
-    // This ensures it's part of the hook's scope and resolves the dependency warning.
-    const fetchProducts = async (pageNum: number) => {
-      try {
-        const apiUrl = `${strapiUrl}/api/products?populate=Images&sort=createdAt:desc&pagination[page]=${pageNum}&pagination[pageSize]=${PAGE_SIZE}`;
-        const res = await fetch(apiUrl);
-        if (!res.ok) {
-          throw new Error("Failed to fetch products");
-        }
-        const responseData = await res.json();
-        return {
-          data: responseData.data || [],
-          pageCount: responseData.meta.pagination.pageCount || 0,
-        };
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        return { data: [], pageCount: 0 };
-      }
-    };
-
-    const loadInitialProducts = async () => {
-      setLoadingInitial(true);
-      const { data, pageCount } = await fetchProducts(1);
-      setProducts(data);
-      setTotalPages(pageCount);
-      setPage(1);
-      setLoadingInitial(false);
-    };
-
-    loadInitialProducts();
-    // The dependency array is now correct because strapiUrl is the only external variable.
-  }, [strapiUrl]);
-  // --- END: THE FIX ---
-
-  // Handler for the "Load More" button
-  const handleLoadMore = async () => {
-    // We can define the fetch logic again here, or keep it separate if preferred.
-    // For simplicity, we'll redefine it here to keep concerns separate.
-    const fetchProducts = async (pageNum: number) => {
-      try {
-        const apiUrl = `${strapiUrl}/api/products?populate=Images&sort=createdAt:desc&pagination[page]=${pageNum}&pagination[pageSize]=${PAGE_SIZE}`;
-        const res = await fetch(apiUrl);
-        if (!res.ok) {
-          throw new Error("Failed to fetch products");
-        }
-        const responseData = await res.json();
-        return {
-          data: responseData.data || [],
-        };
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        return { data: [] };
-      }
-    };
-
-    setLoadingMore(true);
-    const nextPage = page + 1;
-    const { data } = await fetchProducts(nextPage);
-    setProducts((prevProducts) => [...prevProducts, ...data]);
-    setPage(nextPage);
-    setLoadingMore(false);
-  };
-
-  if (loadingInitial) {
-    return <p className="text-center py-16">Loading products...</p>;
-  }
+  const images = [
+    {
+      src: "/product-collage-1.png",
+      alt: "A collage of collectible die-cast cars, including NASCAR and Volkswagen models.",
+    },
+    {
+      src: "/product-collage-2.png",
+      alt: "A collage of various collectibles, including toy trucks, license plates, and themed cars.",
+    },
+    {
+      src: "/product-collage-3.png",
+      alt: "A collage featuring NASCAR memorabilia, collectible pipes, and vintage Matchbox cars.",
+    },
+    {
+      src: "/product-collage-4.png",
+      alt: "A diverse collage of items including a purple model car, candles, and vintage toy packaging.",
+    },
+  ];
 
   return (
-    <main className="container mx-auto px-4 py-12">
-      <h2 className="font-serif text-4xl font-bold mb-10 text-center text-gray-800">
-        Recently Added
-      </h2>
-      {products.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-fade-in-up">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+    // The main tag no longer has container classes, allowing sections to be full-width.
+    <main>
+      {/* --- 1. Full-Width Image View (Top Section) --- */}
+      {/* This div is full-width and uses flexbox to place images side-by-side with no gaps. */}
+      {/* On small screens (mobile), it stacks them vertically (flex-col). */}
+      <div className="w-full flex flex-col sm:flex-row">
+        {images.map((image, index) => (
+          // Each image container is relative to position the Next/Image component inside.
+          // On small screens, each takes the full width. On larger screens, they each take 1/4 of the width.
+          <div
+            key={`full-width-${index}`}
+            className="relative w-full sm:w-1/4 h-64 sm:h-96"
+          >
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              className="object-cover"
+              priority={true} // Prioritize all images in this view as they are above the fold.
+            />
           </div>
+        ))}
+      </div>
 
-          {page < totalPages && (
-            <div className="text-center mt-12">
-              <button
-                onClick={handleLoadMore}
-                disabled={loadingMore}
-                className="bg-red-600 text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-red-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:bg-red-300"
-              >
-                {loadingMore ? "Loading..." : "Load More"}
-              </button>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="text-center py-16">
-          <p className="text-lg text-gray-600">
-            No products found. Please check back later!
+      {/* --- 2. Divider --- */}
+      {/* This section is wrapped in a container to align with the content below it. */}
+      <div className="container mx-auto px-4 my-16">
+        <div className="relative">
+          <div
+            className="absolute inset-0 flex items-center"
+            aria-hidden="true"
+          >
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-warm-bg px-4 text-xl font-medium text-gray-600 font-serif">
+              Our Collection
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* --- 3. Centered Grid View (Bottom Section) --- */}
+      {/* This is the original layout, now placed below the divider. */}
+      {/* It's wrapped in a container to keep it centered with a max-width. */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="text-center mb-12">
+          <h1 className="font-serif text-5xl font-bold text-gray-800">
+            Welcome to AlpialCanada
+          </h1>
+          <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+            Discover a curated collection of unique antiques, vintage toys, and
+            rare collectibles. Browse our catalog to find your next treasure.
           </p>
         </div>
-      )}
+
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 animate-fade-in-up">
+          {images.map((image, index) => (
+            <div
+              key={`grid-${index}`}
+              className="overflow-hidden rounded-lg shadow-xl border border-gray-200"
+            >
+              <Image
+                src={image.src}
+                alt={image.alt}
+                width={500}
+                height={500}
+                className="h-full w-full object-cover object-center"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
     </main>
   );
 }
