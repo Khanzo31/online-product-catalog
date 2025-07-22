@@ -55,7 +55,6 @@ export default function ProductCard({
       imageUrl: relativeImageUrl,
     };
 
-    // --- UPDATED: Custom toast notifications ---
     if (isFavorited) {
       removeFavorite(documentId);
       toast("Removed from Favorites!", {
@@ -92,7 +91,10 @@ export default function ProductCard({
               alt={Name || "Product Image"}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              // --- THIS IS THE FIX ---
+              // Provides sizing information for various grid layouts.
+              // This covers 1-col (mobile), 2-col (tablet), and 3/4-col (desktop) layouts.
+              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">

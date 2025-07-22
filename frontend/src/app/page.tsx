@@ -1,6 +1,6 @@
 // frontend/src/app/page.tsx
 import Image from "next/image";
-import Link from "next/link"; // <-- Import Link
+import Link from "next/link";
 
 export default function HomePage() {
   const images = [
@@ -47,12 +47,14 @@ export default function HomePage() {
               height={500}
               className="h-full w-full object-cover object-center"
               priority={index < 2} // Prioritize loading the first two images
+              // --- THIS IS THE FIX ---
+              // Provide detailed sizing information to the browser.
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             />
           </div>
         ))}
       </div>
 
-      {/* --- NEW CALL-TO-ACTION SECTION --- */}
       <div className="text-center mt-16">
         <Link
           href="/search"
@@ -61,7 +63,6 @@ export default function HomePage() {
           Browse All Products
         </Link>
       </div>
-      {/* --- END OF NEW SECTION --- */}
     </main>
   );
 }

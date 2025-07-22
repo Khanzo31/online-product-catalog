@@ -1,0 +1,6 @@
+# Allow all user-agents to crawl the site
+User-agent: *
+Disallow: /dashboard/
+
+# Location of the sitemap
+Sitemap: https://www.alpialcanada.com/sitemap.xml

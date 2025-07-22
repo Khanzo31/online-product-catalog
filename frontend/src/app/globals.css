@@ -1,13 +1,12 @@
+/* CORRECTED FOR TAILWIND CSS v4 */
 @import "tailwindcss";
-@plugin "@tailwindcss/typography"; /* <-- THIS IS THE FIX */
+@plugin "@tailwindcss/typography";
 
 :root {
-  /* UPDATED: Set the default background to the warm-bg color */
   --background: #f9f6f2;
   --foreground: #171717;
 }
 
-/* The dark mode remains unchanged, but you could define a dark warm color here too */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

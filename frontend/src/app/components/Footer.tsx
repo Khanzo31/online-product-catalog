@@ -9,10 +9,22 @@ export default function Footer() {
         <p className="text-lg font-semibold">AlpialCanada</p>
 
         <div className="mt-4 flex justify-center items-center gap-x-6 gap-y-2 flex-wrap text-gray-300">
-          {/* UPDATED: Email address is now plain text */}
-          <span>alpialcanada@gmail.com</span>
+          {/* --- OBFUSCATED EMAIL ---
+              This displays 'alpialcanada@gmail.com' to users but is structured
+              in reverse in the HTML to confuse basic email-harvesting bots.
+              The 'direction: rtl' and 'unicode-bidi: bidi-override' CSS properties
+              make the browser render the reversed text in the correct order.
+           */}
+          <span
+            style={{
+              direction: "rtl",
+              unicodeBidi: "bidi-override",
+            }}
+          >
+            moc.liamg@adanaclaipia
+          </span>
+
           <span className="hidden sm:inline text-gray-500">|</span>
-          {/* UPDATED: Phone number is now plain text */}
           <span>613-302-0549</span>
         </div>
 
