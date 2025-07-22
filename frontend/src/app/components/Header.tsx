@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 export default function Header() {
   const { favoritesCount } = useFavorites();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const threshold = 50;
@@ -17,28 +18,23 @@ export default function Header() {
     };
 
     window.addEventListener("scroll", handleScroll);
-    // Call handler once on mount to set initial state
     handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []); // Empty dependency array is correct, runs only on mount.
+  }, []);
 
   return (
-    // --- START OF DEFINITIVE FIX ---
-    // 1. A fixed height `h-28` (7rem, 112px) is applied to the header.
-    //    This is the height of the EXPANDED header, so it never changes.
-    // 2. The dynamic padding `py-2`/`py-4` is REMOVED.
-    // 3. `flex` and `items-center` are added to vertically center the content
-    //    within the fixed-height container.
+    // --- CORRECTED: Removed the redundant 'relative' class ---
     <header className="bg-gray-800 shadow-lg border-b border-gray-700 sticky top-0 z-50 transition-all duration-300 h-28 flex items-center">
-      {/* --- END OF DEFINITIVE FIX --- */}
-
       <div className="container mx-auto flex items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-4 group">
+        <Link
+          href="/"
+          className="flex items-center gap-4 group"
+          onClick={() => setIsMenuOpen(false)}
+        >
           <Image
             src="/alpial-logo.png"
             alt="AlpialCanada Logo"
-            // The size of the image itself still changes, but it won't affect the parent header's height.
             width={isScrolled ? 50 : 80}
             height={isScrolled ? 50 : 80}
             priority
@@ -48,7 +44,6 @@ export default function Header() {
             <h1 className="font-serif text-2xl md:text-3xl font-bold tracking-wider text-white uppercase group-hover:text-red-300 transition-colors">
               AlpialCanada
             </h1>
-            {/* This subtitle correctly disappears on scroll */}
             {!isScrolled && (
               <p className="hidden md:block text-md text-gray-300 mt-1 transition-opacity duration-300">
                 Antiques & Collectibles
@@ -57,7 +52,8 @@ export default function Header() {
           </div>
         </Link>
 
-        <nav aria-label="Main Navigation">
+        {/* Desktop Navigation (hidden on mobile) */}
+        <nav aria-label="Main Navigation" className="hidden md:block">
           <ul className="flex space-x-4 md:space-x-6 text-base md:text-lg uppercase tracking-wide">
             <li>
               <Link
@@ -90,7 +86,80 @@ export default function Header() {
             </li>
           </ul>
         </nav>
+
+        {/* Mobile Hamburger Menu Button (visible on mobile) */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-controls="mobile-menu"
+            aria-expanded={isMenuOpen}
+            aria-label="Toggle navigation menu"
+            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+          >
+            <svg
+              className="h-6 w-6"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              {isMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Navigation Panel (conditionally rendered) */}
+      {isMenuOpen && (
+        <div
+          id="mobile-menu"
+          className="md:hidden absolute top-full left-0 right-0 bg-gray-800 shadow-lg"
+        >
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <Link
+              href="/"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+            >
+              Home
+            </Link>
+            <Link
+              href="/search"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+            >
+              Search
+            </Link>
+            <Link
+              href="/favorites"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+            >
+              <div className="flex items-center">
+                Favorites
+                {favoritesCount > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-600 text-xs font-medium text-white">
+                    {favoritesCount}
+                  </span>
+                )}
+              </div>
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

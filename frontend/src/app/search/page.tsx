@@ -4,21 +4,16 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import ProductCard, { ProductCardProps } from "@/app/components/ProductCard";
 
-// --- START: TYPE DEFINITIONS ---
+// --- START: TYPE DEFINITIONS (Simplified) ---
 interface ProductType {
   id: number;
   documentId: string;
   Name: string;
-  CustomProperties?: { name: string; type: string }[];
 }
 interface Product extends ProductCardProps {
   SKU: string;
   Description: string;
-  CustomPropertyValues?: { [key: string]: string | number };
   Product?: ProductType;
-}
-interface CustomFilterValues {
-  [key: string]: string;
 }
 
 // A type for the API response structure
@@ -47,11 +42,6 @@ export default function SearchPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [customProperties, setCustomProperties] = useState<
-    { name: string; type: string }[]
-  >([]);
-  const [customFilterValues, setCustomFilterValues] =
-    useState<CustomFilterValues>({});
   const [statusMessage, setStatusMessage] = useState("Loading products...");
   const [sortBy, setSortBy] = useState("default");
   const isInitialMount = useRef(true);
@@ -83,9 +73,13 @@ export default function SearchPage() {
         "pagination[pageSize]": PAGE_SIZE.toString(),
       });
 
+      // --- UPDATED: Search in both Name and Description ---
       if (debouncedSearchTerm.trim()) {
-        params.append("filters[Name][$containsi]", debouncedSearchTerm.trim());
+        const term = debouncedSearchTerm.trim();
+        params.append("filters[$or][0][Name][$containsi]", term);
+        params.append("filters[$or][1][Description][$containsi]", term);
       }
+
       if (selectedType) {
         params.append("filters[Product][documentId][$eq]", selectedType);
       }
@@ -101,22 +95,7 @@ export default function SearchPage() {
         }
 
         const responseData: StrapiApiResponse<Product> = await res.json();
-        let newResults = responseData.data || [];
-
-        if (Object.values(customFilterValues).some((v) => v.trim() !== "")) {
-          newResults = newResults.filter((product) => {
-            return Object.entries(customFilterValues).every(([key, value]) => {
-              if (!value.trim()) return true;
-              const productValue = product.CustomPropertyValues?.[key];
-              if (productValue === null || productValue === undefined)
-                return false;
-              return productValue
-                .toString()
-                .toLowerCase()
-                .includes(value.trim().toLowerCase());
-            });
-          });
-        }
+        const newResults = responseData.data || [];
 
         setResults((prev) =>
           isNewSearch ? newResults : [...prev, ...newResults]
@@ -139,13 +118,8 @@ export default function SearchPage() {
         setLoadingMore(false);
       }
     },
-    [
-      debouncedSearchTerm,
-      selectedType,
-      customFilterValues,
-      strapiUrl,
-      results.length,
-    ]
+    // --- UPDATED: Simplified dependency array ---
+    [debouncedSearchTerm, selectedType, strapiUrl, results.length]
   );
 
   useEffect(() => {
@@ -161,40 +135,14 @@ export default function SearchPage() {
     handleSearch(1, true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // --- UPDATED: Simplified useEffect to trigger search on filter changes ---
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
-
-    const fetchCustomProperties = async () => {
-      if (selectedType) {
-        try {
-          const res = await fetch(
-            `${strapiUrl}/api/product-types?filters[documentId][$eq]=${selectedType}&populate=*`
-          );
-          setCustomProperties(
-            (await res.json()).data?.[0]?.CustomProperties || []
-          );
-        } catch (error) {
-          console.error("Failed to fetch custom properties:", error);
-          setCustomProperties([]);
-        }
-      } else {
-        setCustomProperties([]);
-      }
-      setCustomFilterValues({});
-    };
-
-    fetchCustomProperties();
     handleSearch(1, true);
   }, [debouncedSearchTerm, selectedType]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!isInitialMount.current) {
-      handleSearch(1, true);
-    }
-  }, [customFilterValues]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadMore = () => {
     const nextPage = page + 1;
@@ -226,22 +174,17 @@ export default function SearchPage() {
 
   const handleClearSearch = () => setSearchTerm("");
   const handleClearType = () => setSelectedType("");
-  const handleClearCustomFilter = (key: string) => {
-    setCustomFilterValues((prev) => {
-      const newFilters = { ...prev };
-      delete newFilters[key];
-      return newFilters;
-    });
-  };
+
+  // --- UPDATED: Simplified clear all handler ---
   const handleClearAll = () => {
     handleClearSearch();
     handleClearType();
-    setCustomFilterValues({});
   };
 
   const selectedTypeName =
     productTypes.find((pt) => pt.documentId === selectedType)?.Name || "";
 
+  // --- UPDATED: Simplified active filters logic ---
   const activeFilters = [];
   if (debouncedSearchTerm) {
     activeFilters.push({
@@ -255,14 +198,6 @@ export default function SearchPage() {
       onClear: handleClearType,
     });
   }
-  Object.entries(customFilterValues).forEach(([key, value]) => {
-    if (value) {
-      activeFilters.push({
-        label: `${key}: "${value}"`,
-        onClear: () => handleClearCustomFilter(key),
-      });
-    }
-  });
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -315,35 +250,7 @@ export default function SearchPage() {
               </select>
             </div>
 
-            {customProperties.length > 0 && (
-              <fieldset className="p-4 border border-gray-200 rounded-lg bg-gray-50/50 space-y-4">
-                <legend className="font-semibold text-gray-700 px-1">
-                  {selectedTypeName} Properties
-                </legend>
-                {customProperties.map((prop) => (
-                  <div key={prop.name}>
-                    <label
-                      htmlFor={`prop-${prop.name}`}
-                      className="block text-sm font-medium text-gray-600 mb-1"
-                    >
-                      {prop.name}
-                    </label>
-                    <input
-                      type={prop.type}
-                      id={`prop-${prop.name}`}
-                      value={customFilterValues[prop.name] || ""}
-                      onChange={(e) =>
-                        setCustomFilterValues((prev) => ({
-                          ...prev,
-                          [prop.name]: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-600 focus:border-red-600"
-                    />
-                  </div>
-                ))}
-              </fieldset>
-            )}
+            {/* --- REMOVED: Custom Properties filter section --- */}
 
             {activeFilters.length > 0 && (
               <button
@@ -426,7 +333,6 @@ export default function SearchPage() {
             </>
           ) : (
             <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg">
-              {/* UPDATED: Added font-serif to the h3 */}
               <h3 className="font-serif text-lg font-semibold text-gray-800">
                 No Products Found
               </h3>
