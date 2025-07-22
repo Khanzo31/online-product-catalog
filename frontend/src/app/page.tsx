@@ -1,8 +1,29 @@
 // frontend/src/app/page.tsx
 import Image from "next/image";
 import Link from "next/link";
+import ProductCard, { ProductCardProps } from "@/app/components/ProductCard";
 
-export default function HomePage() {
+// Define data fetching function
+const strapiUrl =
+  process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
+
+async function getFeaturedProducts(): Promise<ProductCardProps[]> {
+  const apiUrl = `${strapiUrl}/api/products?sort=updatedAt:desc&pagination[limit]=4&populate=Images`;
+  try {
+    const res = await fetch(apiUrl, { next: { revalidate: 300 } }); // Revalidate every 5 minutes
+    if (!res.ok) return [];
+    const responseData = await res.json();
+    return responseData.data || [];
+  } catch (error) {
+    console.error("Failed to fetch featured products:", error);
+    return [];
+  }
+}
+
+// Update the main component to be async and fetch data
+export default async function HomePage() {
+  const featuredProducts = await getFeaturedProducts();
+
   const images = [
     {
       src: "/product-collage-1.png",
@@ -62,8 +83,26 @@ export default function HomePage() {
         </Link>
       </div>
 
-      {/* --- THIS IS THE NEW CONTENT SECTION --- */}
-      <section className="mt-20 py-16 bg-warm-bg rounded-lg">
+      {featuredProducts.length > 0 && (
+        <section className="mt-20 py-16">
+          <div className="max-w-7xl mx-auto px-6 text-center">
+            <h2 className="font-serif text-3xl font-bold text-gray-800">
+              Featured Products
+            </h2>
+            {/* --- FINAL REFINED TEXT --- */}
+            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+              Here are some of the latest items from our collection.
+            </p>
+            <div className="mt-12 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="mt-12 py-16 bg-warm-bg rounded-lg">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif text-3xl font-bold text-gray-800">
             A Passion for Collecting
@@ -89,7 +128,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      {/* --- END OF NEW CONTENT SECTION --- */}
     </main>
   );
 }
