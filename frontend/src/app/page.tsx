@@ -46,9 +46,7 @@ export default function HomePage() {
               width={500}
               height={500}
               className="h-full w-full object-cover object-center"
-              priority={index < 2} // Prioritize loading the first two images
-              // --- THIS IS THE FIX ---
-              // Provide detailed sizing information to the browser.
+              priority={index < 2}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             />
           </div>
@@ -63,6 +61,35 @@ export default function HomePage() {
           Browse All Products
         </Link>
       </div>
+
+      {/* --- THIS IS THE NEW CONTENT SECTION --- */}
+      <section className="mt-20 py-16 bg-warm-bg rounded-lg">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="font-serif text-3xl font-bold text-gray-800">
+            A Passion for Collecting
+          </h2>
+          <div className="prose prose-lg mx-auto mt-6 text-gray-700">
+            <p>
+              At AlpialCanada, we believe that every object has a story. Our
+              catalog is a reflection of a lifelong passion for uncovering
+              unique and interesting items from the past. We specialize in a
+              wide array of collectibles, from vintage die-cast cars and classic
+              toys to rare antiques and memorabilia that evoke a sense of
+              nostalgia and wonder.
+            </p>
+            <p>
+              Our collection is constantly evolving as we discover new
+              treasures. Whether you are a seasoned collector searching for a
+              specific piece to complete your set, or a newcomer looking for a
+              unique item that catches your eye, we invite you to explore what
+              we have to offer. Each product is carefully selected and presented
+              with the care it deserves. Thank you for visiting, and we hope you
+              find something special.
+            </p>
+          </div>
+        </div>
+      </section>
+      {/* --- END OF NEW CONTENT SECTION --- */}
     </main>
   );
 }

@@ -14,14 +14,14 @@ import { FavoritesProvider } from "@/app/context/FavoritesContext";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  display: "swap", // Explicitly set font-display strategy
+  display: "swap",
 });
 
 const lora = Lora({
   subsets: ["latin"],
   variable: "--font-lora",
   weight: ["400", "700"],
-  display: "swap", // Explicitly set font-display strategy
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -44,6 +44,12 @@ export const metadata: Metadata = {
     ],
     locale: "en_US",
     type: "website",
+  },
+  // --- THIS IS THE FIX ---
+  // Add icon links for favicons and Apple devices.
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
 };
 

@@ -11,7 +11,7 @@ Following a full-site audit, a set of actionable requirements was established to
 - **Initial SEO Score:** 82/100
 - **Analysis:** The initial score was strong but highlighted several areas for improvement. The following requirements address all failed tests and warnings from the audit.
 
-## 3. SEO & Technical Health Requirements
+## 3. Technical SEO Requirements (First Audit)
 
 | ID        | Requirement Name                    | Priority | Status         | Notes                                                                                    |
 | :-------- | :---------------------------------- | :------- | :------------- | :--------------------------------------------------------------------------------------- |
@@ -32,3 +32,13 @@ Following a full-site audit, a set of actionable requirements was established to
 | SEO-3.5   | Expand Meta Description Length      | P3       | Implemented    | Expanded the homepage meta description to fall within the recommended character count.   |
 | **SEO-4** | **Not Applicable**                  |          |                |                                                                                          |
 | SEO-4.1   | Add `ads.txt` File                  | N/A      | Not Applicable | The site does not serve programmatic ads.                                                |
+
+## 4. On-Page & Content Requirements (Second Audit)
+
+| ID        | Requirement Name             | Priority | Status      | Notes                                                                                           |
+| :-------- | :--------------------------- | :------- | :---------- | :---------------------------------------------------------------------------------------------- |
+| **SEO-5** | **New On-Page Issues**       |          |             |                                                                                                 |
+| SEO-5.1   | Resolve Multiple H1 Headings | P1       | Implemented | Changed the site logo in the header from an `<h1>` to a `<div>` to ensure a single H1 per page. |
+| SEO-5.2   | Expand Homepage Content      | P2       | Implemented | Added a new content section to the homepage to increase word count and provide more context.    |
+| SEO-5.3   | Add Apple Touch Icon         | P3       | Implemented | Added `apple-touch-icon.png` to the `/public` folder and linked it in the root layout.          |
+| SEO-5.4   | Add Social Sharing Options   | P3       | Implemented | Created a `SocialShareButtons` component and added it to product detail pages.                  |

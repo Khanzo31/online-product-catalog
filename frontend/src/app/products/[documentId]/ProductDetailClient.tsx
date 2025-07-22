@@ -11,6 +11,7 @@ import { useFavorites } from "@/app/context/FavoritesContext";
 import RelatedProducts from "@/app/components/RelatedProducts";
 import { ProductCardProps } from "@/app/components/ProductCard";
 import toast from "react-hot-toast";
+import SocialShareButtons from "@/app/components/SocialShareButtons"; // --- 1. IMPORT THE NEW COMPONENT ---
 
 interface ProductDetailImage {
   id: number;
@@ -36,6 +37,15 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
   const [activeTab, setActiveTab] = useState("description");
+
+  // --- 2. GET THE FULL PAGE URL ---
+  const [pageUrl, setPageUrl] = useState("");
+  useEffect(() => {
+    // This ensures the URL is read on the client side after hydration
+    if (typeof window !== "undefined") {
+      setPageUrl(window.location.href);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchRelatedProducts = async () => {
@@ -374,6 +384,12 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 }
               />
             </div>
+
+            {/* --- 3. ADD THE SOCIAL SHARE COMPONENT --- */}
+            <div className="mt-8">
+              {pageUrl && <SocialShareButtons url={pageUrl} title={Name} />}
+            </div>
+
             <Link
               href="/"
               className="mt-10 inline-block text-blue-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-sm"

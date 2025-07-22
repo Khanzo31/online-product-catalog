@@ -24,7 +24,6 @@ export default function Header() {
   }, []);
 
   return (
-    // --- CORRECTED: Removed the redundant 'relative' class ---
     <header className="bg-gray-800 shadow-lg border-b border-gray-700 sticky top-0 z-50 transition-all duration-300 h-28 flex items-center">
       <div className="container mx-auto flex items-center justify-between px-4">
         <Link
@@ -41,9 +40,10 @@ export default function Header() {
             className="transition-all duration-300"
           />
           <div>
-            <h1 className="font-serif text-2xl md:text-3xl font-bold tracking-wider text-white uppercase group-hover:text-red-300 transition-colors">
+            {/* --- THIS IS THE FIX: Changed from h1 to div --- */}
+            <div className="font-serif text-2xl md:text-3xl font-bold tracking-wider text-white uppercase group-hover:text-red-300 transition-colors">
               AlpialCanada
-            </h1>
+            </div>
             {!isScrolled && (
               <p className="hidden md:block text-md text-gray-300 mt-1 transition-opacity duration-300">
                 Antiques & Collectibles
