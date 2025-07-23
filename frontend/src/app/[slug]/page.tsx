@@ -35,14 +35,17 @@ async function getPageBySlug(slug: string): Promise<Page | null> {
   }
 }
 
-// --- UPDATE: Added generateMetadata function ---
+// --- START OF FIX: UPDATE PROPS TYPE ---
+// The generateMetadata function also needs to handle the Promise-based params.
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = params;
+  // Await the promise to get the slug
+  const { slug } = await params;
   const page = await getPageBySlug(slug);
+  // --- END OF FIX ---
 
   if (!page) {
     return {
@@ -50,7 +53,6 @@ export async function generateMetadata({
     };
   }
 
-  // Create a short, SEO-friendly description from the page content
   const description = page.Content
     ? page.Content.substring(0, 155).replace(/\s+/g, " ").trim() + "..."
     : `Learn more about ${page.Title} on AlpialCanada.`;
@@ -68,16 +70,17 @@ export async function generateMetadata({
   };
 }
 
-// =================================================================================
-// PAGE COMPONENT - Updated to a more standard props definition
-// =================================================================================
+// --- START OF FIX: UPDATE PAGE COMPONENT PROPS ---
 export default async function StaticPage({
   params,
 }: {
-  params: { slug: string };
+  // 1. Type params as a Promise containing the slug object
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  // 2. Await the params promise to get the resolved object
+  const { slug } = await params;
   const page = await getPageBySlug(slug);
+  // --- END OF FIX ---
 
   if (!page) {
     notFound();
