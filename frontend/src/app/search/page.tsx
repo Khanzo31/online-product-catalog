@@ -73,7 +73,6 @@ export default function SearchPage() {
         "pagination[pageSize]": PAGE_SIZE.toString(),
       });
 
-      // --- UPDATED: Search in both Name and Description ---
       if (debouncedSearchTerm.trim()) {
         const term = debouncedSearchTerm.trim();
         params.append("filters[$or][0][Name][$containsi]", term);
@@ -118,7 +117,6 @@ export default function SearchPage() {
         setLoadingMore(false);
       }
     },
-    // --- UPDATED: Simplified dependency array ---
     [debouncedSearchTerm, selectedType, strapiUrl, results.length]
   );
 
@@ -135,7 +133,6 @@ export default function SearchPage() {
     handleSearch(1, true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // --- UPDATED: Simplified useEffect to trigger search on filter changes ---
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -175,7 +172,6 @@ export default function SearchPage() {
   const handleClearSearch = () => setSearchTerm("");
   const handleClearType = () => setSelectedType("");
 
-  // --- UPDATED: Simplified clear all handler ---
   const handleClearAll = () => {
     handleClearSearch();
     handleClearType();
@@ -184,7 +180,6 @@ export default function SearchPage() {
   const selectedTypeName =
     productTypes.find((pt) => pt.documentId === selectedType)?.Name || "";
 
-  // --- UPDATED: Simplified active filters logic ---
   const activeFilters = [];
   if (debouncedSearchTerm) {
     activeFilters.push({
@@ -201,20 +196,20 @@ export default function SearchPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="font-serif text-4xl font-bold mb-8 text-center text-gray-800">
+      <h1 className="font-serif text-4xl font-bold mb-8 text-center text-gray-800 dark:text-gray-200">
         Browse Products
       </h1>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
         <aside className="lg:col-span-1">
-          <div className="sticky top-36 space-y-6 bg-white p-6 rounded-lg shadow-sm border">
-            <h2 className="text-xl font-semibold font-serif text-gray-800 border-b pb-3">
+          <div className="sticky top-36 space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border dark:border-gray-700">
+            <h2 className="text-xl font-semibold font-serif text-gray-800 dark:text-gray-200 border-b pb-3 dark:border-gray-600">
               Filters
             </h2>
             <div>
               <label
                 htmlFor="search-keyword"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Search by keyword
               </label>
@@ -224,14 +219,14 @@ export default function SearchPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="e.g. 'oak table'"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-red-600 focus:border-red-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-red-600 focus:border-red-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
               />
             </div>
 
             <div>
               <label
                 htmlFor="product-type"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Product Type
               </label>
@@ -239,7 +234,7 @@ export default function SearchPage() {
                 id="product-type"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-red-600 focus:border-red-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-red-600 focus:border-red-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
                 <option value="">All Product Types</option>
                 {productTypes.map((type) => (
@@ -250,12 +245,10 @@ export default function SearchPage() {
               </select>
             </div>
 
-            {/* --- REMOVED: Custom Properties filter section --- */}
-
             {activeFilters.length > 0 && (
               <button
                 onClick={handleClearAll}
-                className="w-full text-center text-sm text-red-600 hover:text-red-800 hover:underline"
+                className="w-full text-center text-sm text-red-600 hover:text-red-800 dark:hover:text-red-500 hover:underline"
               >
                 Clear All Filters
               </button>
@@ -266,17 +259,19 @@ export default function SearchPage() {
         <main className="lg:col-span-3">
           {activeFilters.length > 0 && (
             <div className="mb-6 flex flex-wrap gap-2 items-center">
-              <span className="text-sm font-semibold">Active:</span>
+              <span className="text-sm font-semibold dark:text-gray-300">
+                Active:
+              </span>
               {activeFilters.map((filter) => (
                 <span
                   key={filter.label}
-                  className="inline-flex items-center gap-x-2 bg-gray-200 text-gray-800 text-sm font-medium pl-3 pr-1 py-1 rounded-full"
+                  className="inline-flex items-center gap-x-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300 text-sm font-medium pl-3 pr-1 py-1 rounded-full"
                 >
                   {filter.label}
                   <button
                     onClick={filter.onClear}
                     aria-label={`Remove filter: ${filter.label}`}
-                    className="flex-shrink-0 h-5 w-5 rounded-full inline-flex items-center justify-center text-gray-500 hover:bg-gray-300 hover:text-gray-700 focus:outline-none"
+                    className="flex-shrink-0 h-5 w-5 rounded-full inline-flex items-center justify-center text-gray-500 hover:bg-gray-300 hover:text-gray-700 dark:hover:bg-gray-600 dark:hover:text-gray-200 focus:outline-none"
                   >
                     ×
                   </button>
@@ -287,7 +282,9 @@ export default function SearchPage() {
 
           {!loading && results.length > 0 && (
             <div className="flex justify-between items-center mb-6">
-              <p className="text-sm text-gray-700">{statusMessage}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                {statusMessage}
+              </p>
               <div>
                 <label htmlFor="sort-by" className="sr-only">
                   Sort by
@@ -296,7 +293,7 @@ export default function SearchPage() {
                   id="sort-by"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-600 focus:border-red-600 sm:text-sm rounded-md"
+                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-600 focus:border-red-600 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
                   <option value="default" disabled>
                     Sort by
@@ -311,7 +308,7 @@ export default function SearchPage() {
           )}
 
           {loading ? (
-            <p className="text-center py-16">Loading...</p>
+            <p className="text-center py-16 dark:text-gray-300">Loading...</p>
           ) : results.length > 0 ? (
             <>
               <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3 animate-fade-in-up">
@@ -332,11 +329,11 @@ export default function SearchPage() {
               )}
             </>
           ) : (
-            <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg">
-              <h3 className="font-serif text-lg font-semibold text-gray-800">
+            <div className="text-center py-16 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+              <h3 className="font-serif text-lg font-semibold text-gray-800 dark:text-gray-200">
                 No Products Found
               </h3>
-              <p className="mt-1 text-gray-600">
+              <p className="mt-1 text-gray-600 dark:text-gray-400">
                 Try adjusting your filters or search term.
               </p>
             </div>

@@ -45,20 +45,15 @@ async function getProductData(documentId: string): Promise<Product | null> {
   }
 }
 
-// --- START OF FINAL FIX ---
-// 1. Define the props type that the build system is demanding.
 type PagePromiseProps = {
   params: Promise<{ documentId: string }>;
 };
 
-// 2. Apply this type to the generateMetadata function.
 export async function generateMetadata({
   params,
 }: PagePromiseProps): Promise<Metadata> {
-  // 3. Await the promise to get the actual params object.
   const { documentId } = await params;
   const product = await getProductData(documentId);
-  // --- END OF FINAL FIX ---
 
   if (!product) {
     return {
@@ -71,31 +66,46 @@ export async function generateMetadata({
     ? product.Description.substring(0, 155).replace(/\s+/g, " ").trim() + "..."
     : "View details for this product on AlpialCanada.";
 
+  const imageUrl = product.Images?.[0]?.url
+    ? product.Images[0].url.startsWith("http")
+      ? product.Images[0].url
+      : `${strapiUrl}${product.Images[0].url}`
+    : undefined;
+
+  const imageMeta = imageUrl
+    ? [
+        {
+          url: imageUrl,
+          width: product.Images[0].width,
+          height: product.Images[0].height,
+          alt: product.Name,
+        },
+      ]
+    : [];
+
   return {
     title: `${product.Name} | AlpialCanada`,
     description: description,
+    // --- UPDATE: Added canonical URL for the product ---
+    alternates: {
+      canonical: `/products/${documentId}`,
+    },
     openGraph: {
       title: `${product.Name} | AlpialCanada`,
       description: description,
-      images: product.Images?.[0]?.url
-        ? [
-            {
-              url: product.Images[0].url.startsWith("http")
-                ? product.Images[0].url
-                : `${strapiUrl}${product.Images[0].url}`,
-              width: product.Images[0].width,
-              height: product.Images[0].height,
-              alt: product.Name,
-            },
-          ]
-        : [],
+      images: imageMeta,
+    },
+    // --- UPDATE: Added Twitter-specific card metadata ---
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.Name} | AlpialCanada`,
+      description: description,
+      images: imageUrl ? [imageUrl] : [],
     },
   };
 }
 
-// 4. Apply the SAME props type to the main page component.
 export default async function ProductPage({ params }: PagePromiseProps) {
-  // 5. Await the promise here as well.
   const { documentId } = await params;
   const product = await getProductData(documentId);
 

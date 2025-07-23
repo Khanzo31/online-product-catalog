@@ -25,9 +25,17 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.alpialcanada.com"),
+  alternates: {
+    canonical: "/",
+  },
   title: "AlpialCanada | Antiques & Collectibles",
   description:
     "Discover a curated collection of unique antiques, vintage toys, and rare collectibles at AlpialCanada. Browse our online catalog to find your next treasure today.",
+
+  // --- UPDATE: Link to the new web app manifest ---
+  manifest: "/site.webmanifest",
+
   openGraph: {
     title: "AlpialCanada | Antiques & Collectibles",
     description:
@@ -36,7 +44,7 @@ export const metadata: Metadata = {
     siteName: "AlpialCanada",
     images: [
       {
-        url: "https://www.alpialcanada.com/product-collage-1.png",
+        url: "/product-collage-1.png", // Next.js resolves this to an absolute URL
         width: 1200,
         height: 630,
         alt: "A collage of collectible die-cast cars and antiques.",
@@ -45,11 +53,26 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
-  // --- THIS IS THE FIX ---
-  // Add icon links for favicons and Apple devices.
+  twitter: {
+    card: "summary_large_image",
+    title: "AlpialCanada | Antiques & Collectibles",
+    description:
+      "A curated online catalog of unique antiques, vintage toys, and rare collectibles.",
+    images: ["/product-collage-1.png"],
+  },
+
+  // --- UPDATE: Provide a more comprehensive set of icons ---
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    // 'shortcut' is a legacy but good-to-have link relationship
+    shortcut: "/apple-touch-icon.png",
   },
 };
 

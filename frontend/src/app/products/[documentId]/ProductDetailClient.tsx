@@ -11,7 +11,7 @@ import { useFavorites } from "@/app/context/FavoritesContext";
 import RelatedProducts from "@/app/components/RelatedProducts";
 import { ProductCardProps } from "@/app/components/ProductCard";
 import toast from "react-hot-toast";
-import SocialShareButtons from "@/app/components/SocialShareButtons"; // --- 1. IMPORT THE NEW COMPONENT ---
+import SocialShareButtons from "@/app/components/SocialShareButtons";
 
 interface ProductDetailImage {
   id: number;
@@ -38,10 +38,8 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
   const [activeTab, setActiveTab] = useState("description");
 
-  // --- 2. GET THE FULL PAGE URL ---
   const [pageUrl, setPageUrl] = useState("");
   useEffect(() => {
-    // This ensures the URL is read on the client side after hydration
     if (typeof window !== "undefined") {
       setPageUrl(window.location.href);
     }
@@ -92,7 +90,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         icon: "✅",
         style: {
           borderRadius: "10px",
-          background: "#4b5563", // gray-600
+          background: "#4b5563",
           color: "#ffffff",
         },
       });
@@ -107,7 +105,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         icon: "❤️",
         style: {
           borderRadius: "10px",
-          background: "#dc2626", // red-600
+          background: "#dc2626",
           color: "#ffffff",
         },
       });
@@ -200,17 +198,50 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     },
   };
 
+  // --- START OF UPDATE ---
+  // 1. Define the BreadcrumbList JSON-LD object.
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://www.alpialcanada.com/",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: product.Name,
+        item: pageUrl, // Use the pageUrl state variable which is set on client mount
+      },
+    ],
+  };
+  // --- END OF UPDATE ---
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
+      {/* --- START OF UPDATE --- */}
+      {/* 2. Add a new script tag to inject the breadcrumb schema. */}
+      {/*    We only render this if pageUrl is available to avoid an empty 'item' field. */}
+      {pageUrl && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
+      )}
+      {/* --- END OF UPDATE --- */}
       <main className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div aria-live="polite" className="sr-only">
           {announcement}
         </div>
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+          {/* ... (rest of the file is unchanged) ... */}
           <div>
             <div
               role="tabpanel"
@@ -385,7 +416,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               />
             </div>
 
-            {/* --- 3. ADD THE SOCIAL SHARE COMPONENT --- */}
             <div className="mt-8">
               {pageUrl && <SocialShareButtons url={pageUrl} title={Name} />}
             </div>

@@ -24,7 +24,7 @@ function FavoriteProductCard({ product }: { product: FavoriteItem }) {
   });
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <Link href={`/products/${documentId}`} className="block">
         <div className="aspect-square bg-gray-200 group-hover:opacity-75">
           {fullImageUrl ? (
@@ -42,10 +42,10 @@ function FavoriteProductCard({ product }: { product: FavoriteItem }) {
           )}
         </div>
         <div className="p-4">
-          <h3 className="text-lg font-semibold text-gray-800 truncate">
+          <h3 className="font-serif text-lg font-semibold text-gray-800 dark:text-gray-200 truncate">
             {Name || "Untitled Product"}
           </h3>
-          <p className="mt-1 text-md font-medium text-gray-600">
+          <p className="mt-1 text-md font-medium text-gray-600 dark:text-gray-400">
             {priceFormatter.format(Price || 0)}
           </p>
         </div>
@@ -68,12 +68,11 @@ export default function FavoritesPage() {
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-10 text-center">
-        {/* UPDATED: Added font-serif to the h1 */}
-        <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900">
+        <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
           Your Favorites
         </h1>
         {favorites.length > 0 && (
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
             You have {favorites.length} favorite item
             {favorites.length !== 1 ? "s" : ""}.
           </p>
@@ -87,10 +86,10 @@ export default function FavoritesPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg">
+        <div className="text-center py-16 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="mx-auto h-12 w-12 text-gray-400"
+            className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -102,11 +101,10 @@ export default function FavoritesPage() {
               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
             />
           </svg>
-          {/* UPDATED: Added font-serif to the h3 */}
-          <h3 className="mt-2 font-serif text-lg font-medium text-gray-900">
+          <h3 className="mt-2 font-serif text-lg font-medium text-gray-900 dark:text-gray-200">
             No favorites yet
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             You haven’t added any products to your favorites.
           </p>
           <div className="mt-6">

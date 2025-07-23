@@ -46,10 +46,10 @@ export default async function HomePage() {
   return (
     <main className="container mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="font-serif text-5xl font-bold text-gray-800">
+        <h1 className="font-serif text-5xl font-bold text-gray-800 dark:text-gray-200">
           Welcome to AlpialCanada
         </h1>
-        <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+        <p className="mt-4 text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
           Discover a curated collection of unique antiques, vintage toys, and
           rare collectibles. Browse our catalog to find your next treasure.
         </p>
@@ -59,7 +59,7 @@ export default async function HomePage() {
         {images.map((image, index) => (
           <div
             key={index}
-            className="overflow-hidden rounded-lg shadow-xl border border-gray-200"
+            className="overflow-hidden rounded-lg shadow-xl border border-gray-200 dark:border-gray-700"
           >
             <Image
               src={image.src}
@@ -86,11 +86,10 @@ export default async function HomePage() {
       {featuredProducts.length > 0 && (
         <section className="mt-20 py-16">
           <div className="max-w-7xl mx-auto px-6 text-center">
-            <h2 className="font-serif text-3xl font-bold text-gray-800">
+            <h2 className="font-serif text-3xl font-bold text-gray-800 dark:text-gray-200">
               Featured Products
             </h2>
-            {/* --- FINAL REFINED TEXT --- */}
-            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Here are some of the latest items from our collection.
             </p>
             <div className="mt-12 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
@@ -102,12 +101,12 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section className="mt-12 py-16 bg-warm-bg rounded-lg">
+      <section className="mt-12 py-16 bg-warm-bg dark:bg-gray-900 rounded-lg">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="font-serif text-3xl font-bold text-gray-800">
+          <h2 className="font-serif text-3xl font-bold text-gray-800 dark:text-gray-200">
             A Passion for Collecting
           </h2>
-          <div className="prose prose-lg mx-auto mt-6 text-gray-700">
+          <div className="prose prose-lg mx-auto mt-6 dark:prose-invert">
             <p>
               At AlpialCanada, we believe that every object has a story. Our
               catalog is a reflection of a lifelong passion for uncovering
