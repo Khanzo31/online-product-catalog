@@ -1,4 +1,3 @@
-// frontend/src/app/search/page.tsx
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -30,7 +29,7 @@ interface StrapiApiResponse<T> {
 }
 // --- END: TYPE DEFINITIONS ---
 
-const PAGE_SIZE = 12; // Increased for a wider grid
+const PAGE_SIZE = 12;
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,7 +42,7 @@ export default function SearchPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [statusMessage, setStatusMessage] = useState("Loading products...");
-  const [sortBy, setSortBy] = useState("default");
+  const [sortBy, setSortBy] = useState("updatedAt:desc");
   const isInitialMount = useRef(true);
 
   const strapiUrl =
@@ -60,7 +59,8 @@ export default function SearchPage() {
     async (targetPage: number, isNewSearch: boolean = false) => {
       if (isNewSearch) {
         setLoading(true);
-        setResults([]);
+        // --- THIS IS THE FIX ---
+        // We must reset the page state to 1 whenever a new search is initiated.
         setPage(1);
       } else {
         setLoadingMore(true);
@@ -71,6 +71,7 @@ export default function SearchPage() {
         populate: "*",
         "pagination[page]": targetPage.toString(),
         "pagination[pageSize]": PAGE_SIZE.toString(),
+        sort: sortBy,
       });
 
       if (debouncedSearchTerm.trim()) {
@@ -95,20 +96,25 @@ export default function SearchPage() {
 
         const responseData: StrapiApiResponse<Product> = await res.json();
         const newResults = responseData.data || [];
+        const paginationMeta = responseData.meta.pagination;
 
-        setResults((prev) =>
-          isNewSearch ? newResults : [...prev, ...newResults]
-        );
-        setTotalPages(responseData.meta.pagination.pageCount);
-        const totalFound = responseData.meta.pagination.total;
-        const currentCount = isNewSearch
-          ? newResults.length
-          : results.length + newResults.length;
-        setStatusMessage(
-          totalFound > 0
-            ? `Showing ${currentCount} of ${totalFound} products.`
-            : "No products found."
-        );
+        setTotalPages(paginationMeta.pageCount);
+
+        setResults((prevResults) => {
+          const updatedResults = isNewSearch
+            ? newResults
+            : [...prevResults, ...newResults];
+
+          const totalFound = paginationMeta.total;
+          const currentCount = updatedResults.length;
+          setStatusMessage(
+            totalFound > 0
+              ? `Showing ${currentCount} of ${totalFound} products.`
+              : "No products found."
+          );
+
+          return updatedResults;
+        });
       } catch (error) {
         setStatusMessage("An error occurred during search.");
         console.error(error);
@@ -117,7 +123,7 @@ export default function SearchPage() {
         setLoadingMore(false);
       }
     },
-    [debouncedSearchTerm, selectedType, strapiUrl, results.length]
+    [debouncedSearchTerm, selectedType, sortBy, strapiUrl]
   );
 
   useEffect(() => {
@@ -130,44 +136,22 @@ export default function SearchPage() {
       }
     };
     fetchProductTypes();
-    handleSearch(1, true);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [strapiUrl]);
 
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
+      handleSearch(1, true);
       return;
     }
     handleSearch(1, true);
-  }, [debouncedSearchTerm, selectedType]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm, selectedType, sortBy, handleSearch]);
 
   const loadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
     handleSearch(nextPage, false);
   };
-
-  useEffect(() => {
-    if (results.length > 1) {
-      const sortedResults = [...results].sort((a, b) => {
-        switch (sortBy) {
-          case "price-asc":
-            return a.Price - b.Price;
-          case "price-desc":
-            return b.Price - a.Price;
-          case "name-asc":
-            return a.Name.localeCompare(b.Name);
-          case "name-desc":
-            return b.Name.localeCompare(a.Name);
-          default:
-            return 0;
-        }
-      });
-      if (JSON.stringify(sortedResults) !== JSON.stringify(results)) {
-        setResults(sortedResults);
-      }
-    }
-  }, [sortBy, results]);
 
   const handleClearSearch = () => setSearchTerm("");
   const handleClearType = () => setSelectedType("");
@@ -295,13 +279,11 @@ export default function SearchPage() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-600 focus:border-red-600 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <option value="default" disabled>
-                    Sort by
-                  </option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                  <option value="name-asc">Name: A to Z</option>
-                  <option value="name-desc">Name: Z to A</option>
+                  <option value="updatedAt:desc">Sort by: Latest</option>
+                  <option value="Price:asc">Price: Low to High</option>
+                  <option value="Price:desc">Price: High to Low</option>
+                  <option value="Name:asc">Name: A to Z</option>
+                  <option value="Name:desc">Name: Z to A</option>
                 </select>
               </div>
             </div>
