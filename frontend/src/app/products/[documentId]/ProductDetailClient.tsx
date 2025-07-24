@@ -413,7 +413,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             </div>
 
             <Link
-              href="/"
+              href="/search"
               className="mt-10 inline-block text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-sm"
             >
               ← Back to all products
