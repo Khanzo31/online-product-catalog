@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import ProductCard, { ProductCardProps } from "@/app/components/ProductCard";
+import ProductCardSkeleton from "@/app/components/ProductCardSkeleton";
 
 // --- START: TYPE DEFINITIONS (Simplified) ---
 interface ProductType {
@@ -290,7 +291,11 @@ export default function SearchPage() {
           )}
 
           {loading ? (
-            <p className="text-center py-16 dark:text-gray-300">Loading...</p>
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: PAGE_SIZE }).map((_, index) => (
+                <ProductCardSkeleton key={index} />
+              ))}
+            </div>
           ) : results.length > 0 ? (
             <>
               <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3 animate-fade-in-up">
