@@ -6,13 +6,13 @@ import { useState, FormEvent } from "react";
 interface ProductInquiryFormProps {
   productId: string;
   productName: string;
-  onSuccess?: () => void; // --- 1. Add optional onSuccess callback prop ---
+  onSuccess?: () => void;
 }
 
 export default function ProductInquiryForm({
   productId,
   productName,
-  onSuccess, // --- 2. Destructure the prop ---
+  onSuccess,
 }: ProductInquiryFormProps) {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -54,13 +54,11 @@ export default function ProductInquiryForm({
       }
 
       setStatus("success");
-      // --- 3. Use a more generic message here, as the toast is now primary ---
       setFeedbackMessage("Thank you! Your inquiry has been received.");
       setCustomerName("");
       setCustomerEmail("");
       setMessage("");
 
-      // --- 4. Call the onSuccess callback if it exists ---
       if (onSuccess) {
         onSuccess();
       }
@@ -77,7 +75,7 @@ export default function ProductInquiryForm({
       <div>
         <label
           htmlFor="customerName"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Your Name
         </label>
@@ -87,13 +85,13 @@ export default function ProductInquiryForm({
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
         />
       </div>
       <div>
         <label
           htmlFor="customerEmail"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Your Email
         </label>
@@ -103,13 +101,13 @@ export default function ProductInquiryForm({
           value={customerEmail}
           onChange={(e) => setCustomerEmail(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
         />
       </div>
       <div>
         <label
           htmlFor="message"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Message
         </label>
@@ -119,10 +117,10 @@ export default function ProductInquiryForm({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
         ></textarea>
       </div>
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-500 dark:text-gray-400">
         Inquiring about: <strong>{productName}</strong>
       </p>
       <div>
@@ -134,7 +132,6 @@ export default function ProductInquiryForm({
           {status === "submitting" ? "Sending..." : "Send Inquiry"}
         </button>
       </div>
-      {/* --- 5. The inline feedback message is now a fallback --- */}
       {feedbackMessage && status !== "idle" && (
         <p
           className={`text-sm mt-2 ${

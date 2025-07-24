@@ -21,12 +21,10 @@ export default function SocialShareButtons({
 }: SocialShareButtonsProps) {
   return (
     <div className="flex items-center gap-4">
-      <span className="text-sm font-medium text-gray-700">Share on:</span>
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        Share on:
+      </span>
       <div className="flex items-center gap-2">
-        {/* --- THIS IS THE FIX ---
-            The 'quote' prop is no longer supported on FacebookShareButton.
-            It has been replaced with the 'hashtag' prop.
-         */}
         <FacebookShareButton url={url} hashtag={"#AlpialCanada"}>
           <FacebookIcon size={32} round />
         </FacebookShareButton>

@@ -81,19 +81,16 @@ export default function ProductCard({
   return (
     <Link
       href={`/products/${documentId}`}
-      className="group block overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      className="group block overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
     >
       <div className="relative">
-        <div className="relative h-56 w-full bg-gray-100">
+        <div className="relative h-56 w-full bg-gray-100 dark:bg-gray-800">
           {fullImageUrl ? (
             <Image
               src={fullImageUrl}
               alt={Name || "Product Image"}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
-              // --- THIS IS THE FIX ---
-              // Provides sizing information for various grid layouts.
-              // This covers 1-col (mobile), 2-col (tablet), and 3/4-col (desktop) layouts.
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
             />
           ) : (
@@ -127,11 +124,11 @@ export default function ProductCard({
           </svg>
         </button>
       </div>
-      <div className="bg-white p-4">
-        <h3 className="text-lg font-semibold text-gray-800 truncate">
+      <div className="bg-white dark:bg-gray-900 p-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 truncate">
           {Name || "Untitled Product"}
         </h3>
-        <p className="mt-1 text-md font-medium text-gray-600">
+        <p className="mt-1 text-md font-medium text-gray-600 dark:text-gray-400">
           {priceFormatter.format(Price || 0)}
         </p>
       </div>

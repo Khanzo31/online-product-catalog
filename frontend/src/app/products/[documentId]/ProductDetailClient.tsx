@@ -198,8 +198,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     },
   };
 
-  // --- START OF UPDATE ---
-  // 1. Define the BreadcrumbList JSON-LD object.
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -214,11 +212,10 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         "@type": "ListItem",
         position: 2,
         name: product.Name,
-        item: pageUrl, // Use the pageUrl state variable which is set on client mount
+        item: pageUrl,
       },
     ],
   };
-  // --- END OF UPDATE ---
 
   return (
     <>
@@ -226,28 +223,23 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
-      {/* --- START OF UPDATE --- */}
-      {/* 2. Add a new script tag to inject the breadcrumb schema. */}
-      {/*    We only render this if pageUrl is available to avoid an empty 'item' field. */}
       {pageUrl && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
       )}
-      {/* --- END OF UPDATE --- */}
       <main className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div aria-live="polite" className="sr-only">
           {announcement}
         </div>
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
-          {/* ... (rest of the file is unchanged) ... */}
           <div>
             <div
               role="tabpanel"
               id="gallery-tabpanel"
               aria-labelledby={`gallery-tab-${selectedImage?.id}`}
-              className="aspect-square relative mb-4 overflow-hidden rounded-lg border bg-gray-100"
+              className="aspect-square relative mb-4 overflow-hidden rounded-lg border bg-gray-100 dark:bg-gray-800 dark:border-gray-700"
             >
               {fullSelectedImageUrl ? (
                 <Image
@@ -308,10 +300,10 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             </div>
           </div>
           <div>
-            <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900">
+            <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
               {Name}
             </h1>
-            <p className="mt-4 text-3xl text-gray-700">
+            <p className="mt-4 text-3xl text-gray-700 dark:text-gray-300">
               {priceFormatter.format(Price)}
             </p>
             <div className="mt-6">
@@ -346,14 +338,14 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             </div>
 
             <div className="mt-8">
-              <div className="border-b border-gray-200">
+              <div className="border-b border-gray-200 dark:border-gray-700">
                 <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                   <button
                     onClick={() => setActiveTab("description")}
                     className={`${
                       activeTab === "description"
-                        ? "border-red-600 text-red-700"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "border-red-600 text-red-700 dark:text-red-500"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-600"
                     } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
                   >
                     Description
@@ -363,8 +355,8 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                       onClick={() => setActiveTab("specs")}
                       className={`${
                         activeTab === "specs"
-                          ? "border-red-600 text-red-700"
-                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                          ? "border-red-600 text-red-700 dark:text-red-500"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-600"
                       } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
                     >
                       Specifications
@@ -375,16 +367,16 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
               <div className="mt-6">
                 {activeTab === "description" && (
-                  <article className="prose lg:prose-lg max-w-none text-gray-600 animate-fade-in-up">
+                  <article className="prose lg:prose-lg max-w-none dark:prose-invert animate-fade-in-up">
                     <ReactMarkdown>{Description}</ReactMarkdown>
                   </article>
                 )}
                 {activeTab === "specs" && (
                   <div className="animate-fade-in-up">
-                    <dl className="space-y-4 text-base text-gray-600">
+                    <dl className="space-y-4 text-base text-gray-600 dark:text-gray-300">
                       {propertiesToRender.map((prop) => (
                         <div key={prop.name} className="flex gap-4">
-                          <dt className="font-medium text-gray-900 w-1/3">
+                          <dt className="font-medium text-gray-900 dark:text-white w-1/3">
                             {prop.name}
                           </dt>
                           <dd className="w-2/3">{formatValue(prop.value)}</dd>
@@ -396,8 +388,8 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               </div>
             </div>
 
-            <div className="mt-10 border shadow-sm pt-10 p-8 bg-white rounded-lg">
-              <h3 className="text-xl font-serif font-semibold mb-4">
+            <div className="mt-10 border dark:border-gray-700 shadow-sm pt-10 p-8 bg-white dark:bg-gray-800 rounded-lg">
+              <h3 className="text-xl font-serif font-semibold mb-4 text-gray-900 dark:text-gray-200">
                 Interested in this product?
               </h3>
               <ProductInquiryForm
@@ -422,7 +414,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
             <Link
               href="/"
-              className="mt-10 inline-block text-blue-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-sm"
+              className="mt-10 inline-block text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-sm"
             >
               ← Back to all products
             </Link>
