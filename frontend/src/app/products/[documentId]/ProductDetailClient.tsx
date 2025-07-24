@@ -233,6 +233,40 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         <div aria-live="polite" className="sr-only">
           {announcement}
         </div>
+
+        {/* --- START OF UPDATE --- */}
+        <nav aria-label="Breadcrumb" className="mb-6">
+          <ol role="list" className="flex items-center space-x-2 text-sm">
+            <li>
+              <Link
+                href="/search"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                Products
+              </Link>
+            </li>
+            <li>
+              <div className="flex items-center">
+                <svg
+                  className="h-5 w-5 flex-shrink-0 text-gray-300 dark:text-gray-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+                </svg>
+                <span
+                  aria-current="page"
+                  className="ml-2 font-medium text-gray-700 dark:text-gray-200 truncate"
+                >
+                  {Name}
+                </span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+        {/* --- END OF UPDATE --- */}
+
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
           <div>
             <div
