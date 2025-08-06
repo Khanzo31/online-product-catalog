@@ -1,5 +1,7 @@
 // frontend/src/app/components/Footer.tsx
 
+import Image from "next/image";
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -26,6 +28,20 @@ export default function Footer() {
 
           <span className="hidden sm:inline text-gray-500">|</span>
           <span>613-302-0549</span>
+
+          {/* --- START OF UPDATE --- */}
+          <span className="hidden sm:inline text-gray-500">|</span>
+          <span className="inline-flex items-center">
+            <Image
+              src="/globe.svg"
+              alt="Location"
+              width={16}
+              height={16}
+              className="mr-2 filter invert"
+            />
+            Located in Ottawa, Canada
+          </span>
+          {/* --- END OF UPDATE --- */}
         </div>
 
         <p className="mt-6 text-sm text-gray-400">

@@ -33,7 +33,6 @@ export const metadata: Metadata = {
   description:
     "Discover a curated collection of unique antiques, vintage toys, and rare collectibles at AlpialCanada. Browse our online catalog to find your next treasure today.",
 
-  // --- UPDATE: Link to the new web app manifest ---
   manifest: "/site.webmanifest",
 
   openGraph: {
@@ -61,19 +60,14 @@ export const metadata: Metadata = {
     images: ["/product-collage-1.png"],
   },
 
-  // --- UPDATE: Provide a more comprehensive set of icons ---
+  // --- THIS IS THE RECOMMENDED UPDATE ---
   icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    // 'shortcut' is a legacy but good-to-have link relationship
-    shortcut: "/apple-touch-icon.png",
+    // This is the primary icon Google will look for.
+    icon: "/favicon.ico",
+    // This provides a high-resolution icon for Apple devices and other services.
+    apple: "/apple-touch-icon.png",
   },
+  // --- END OF UPDATE ---
 };
 
 export default function RootLayout({

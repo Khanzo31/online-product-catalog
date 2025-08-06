@@ -150,6 +150,28 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     Product: productType,
   } = product;
 
+  // --- START OF UPDATE: Add handlers for next/previous image ---
+  const handleNextImage = () => {
+    if (!Images || Images.length < 2) return;
+    const currentIndex = Images.findIndex(
+      (img) => img.id === selectedImage?.id
+    );
+    const nextIndex = (currentIndex + 1) % Images.length;
+    const nextImage = Images[nextIndex];
+    handleImageSelect(nextImage, nextIndex);
+  };
+
+  const handlePrevImage = () => {
+    if (!Images || Images.length < 2) return;
+    const currentIndex = Images.findIndex(
+      (img) => img.id === selectedImage?.id
+    );
+    const prevIndex = (currentIndex - 1 + Images.length) % Images.length;
+    const prevImage = Images[prevIndex];
+    handleImageSelect(prevImage, prevIndex);
+  };
+  // --- END OF UPDATE ---
+
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "CAD",
@@ -234,7 +256,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           {announcement}
         </div>
 
-        {/* --- START OF UPDATE --- */}
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol role="list" className="flex items-center space-x-2 text-sm">
             <li>
@@ -265,7 +286,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             </li>
           </ol>
         </nav>
-        {/* --- END OF UPDATE --- */}
 
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
           <div>
@@ -291,6 +311,55 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                   No Image Available
                 </div>
               )}
+
+              {/* --- START OF UPDATE: Add navigation arrows --- */}
+              {Images && Images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePrevImage}
+                    aria-label="Previous image"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/40 text-white transition hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextImage}
+                    aria-label="Next image"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/40 text-white transition hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </>
+              )}
+              {/* --- END OF UPDATE --- */}
             </div>
             <div
               role="tablist"
