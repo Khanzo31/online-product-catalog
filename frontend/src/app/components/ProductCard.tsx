@@ -14,7 +14,7 @@ export interface ProductCardProps {
   Name: string;
   Price: number;
   Images: ProductImage[];
-  createdAt?: string; // Added for "New" badge logic
+  createdAt?: string;
 }
 
 export default function ProductCard({
@@ -28,12 +28,12 @@ export default function ProductCard({
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
-  const relativeImageUrl = Images?.[0]?.url;
-  const fullImageUrl = relativeImageUrl
-    ? relativeImageUrl.startsWith("http")
-      ? relativeImageUrl
-      : `${strapiUrl}${relativeImageUrl}`
-    : null;
+  // --- IMAGE LOGIC ---
+  const getFullUrl = (url: string) =>
+    url.startsWith("http") ? url : `${strapiUrl}${url}`;
+
+  const primaryImageUrl = Images?.[0]?.url ? getFullUrl(Images[0].url) : null;
+  const secondaryImageUrl = Images?.[1]?.url ? getFullUrl(Images[1].url) : null;
 
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -42,11 +42,11 @@ export default function ProductCard({
 
   const isFavorited = isFavorite(documentId);
 
-  // --- NEW ARRIVAL LOGIC ---
+  // New Arrival Logic (30 days)
   const isNewArrival = createdAt
     ? (new Date().getTime() - new Date(createdAt).getTime()) /
         (1000 * 3600 * 24) <
-      30 // 30 days threshold
+      30
     : false;
 
   const handleFavoriteClick = (e: MouseEvent<HTMLButtonElement>) => {
@@ -57,7 +57,7 @@ export default function ProductCard({
       documentId,
       Name,
       Price,
-      imageUrl: relativeImageUrl,
+      imageUrl: Images?.[0]?.url,
     };
 
     if (isFavorited) {
@@ -86,61 +86,82 @@ export default function ProductCard({
   return (
     <Link
       href={`/products/${documentId}`}
-      className="group block overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      className="group block overflow-hidden rounded-sm border border-stone-200 bg-white dark:bg-gray-800 dark:border-gray-700 shadow-sm transition-all duration-500 hover:shadow-2xl hover:-translate-y-1"
     >
-      <div className="relative">
-        {/* --- NEW BADGE --- */}
+      {/* Increased height slightly to h-64 for a more vertical 'portrait' look common in galleries */}
+      <div className="relative h-64 w-full bg-stone-100 dark:bg-gray-900 overflow-hidden">
+        {/* --- ELEGANT BADGE --- */}
         {isNewArrival && (
-          <span className="absolute top-2 left-2 z-10 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
-            NEW
+          <span className="absolute top-3 left-3 z-20 bg-amber-700 text-white text-[10px] tracking-[0.2em] font-serif uppercase px-3 py-1 shadow-md">
+            New Arrival
           </span>
         )}
 
-        <div className="relative h-56 w-full bg-gray-100 dark:bg-gray-800">
-          {fullImageUrl ? (
+        {primaryImageUrl ? (
+          <>
+            {/* Primary Image */}
             <Image
-              src={fullImageUrl}
+              src={primaryImageUrl}
               alt={Name || "Product Image"}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className={`object-cover transition-all duration-700 ease-in-out z-10 ${
+                secondaryImageUrl
+                  ? "group-hover:opacity-0" // If 2nd image exists, fade out
+                  : "group-hover:scale-110" // If only 1 image, zoom in
+              }`}
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
             />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <span className="text-gray-500">No Image</span>
-            </div>
-          )}
-        </div>
+
+            {/* Secondary Image (Hover Swap) */}
+            {secondaryImageUrl && (
+              <Image
+                src={secondaryImageUrl}
+                alt={`${Name} - Alternate View`}
+                fill
+                className="object-cover absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-in-out scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              />
+            )}
+          </>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <span className="text-stone-400 font-serif italic">
+              No Image Available
+            </span>
+          </div>
+        )}
+
         <button
           onClick={handleFavoriteClick}
           aria-label={
             isFavorited ? "Remove from favorites" : "Add to favorites"
           }
           aria-pressed={isFavorited}
-          className="absolute top-2 right-2 z-10 p-2 bg-white/70 rounded-full text-gray-700 backdrop-blur-sm transition-all hover:bg-white hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+          className="absolute top-3 right-3 z-30 p-2 rounded-full text-stone-600 bg-white/80 backdrop-blur-sm shadow-sm transition-all hover:bg-white hover:text-red-600 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
+            className="h-5 w-5"
             fill={isFavorited ? "currentColor" : "none"}
             viewBox="0 0 24 24"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              className={isFavorited ? "text-red-500" : ""}
+              className={isFavorited ? "text-red-600" : ""}
             />
           </svg>
         </button>
       </div>
-      <div className="bg-white dark:bg-gray-900 p-4">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 truncate">
+
+      <div className="p-5 text-center">
+        <h3 className="text-lg font-serif font-medium text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-amber-700 transition-colors">
           {Name || "Untitled Product"}
         </h3>
-        <p className="mt-1 text-md font-medium text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-sm font-normal tracking-wide text-gray-600 dark:text-gray-400">
           {priceFormatter.format(Price || 0)}
         </p>
       </div>

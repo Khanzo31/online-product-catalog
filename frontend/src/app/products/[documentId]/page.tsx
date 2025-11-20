@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductDetailClient from "./ProductDetailClient";
-import { Product } from "@/types"; // Import shared type
+import { Product } from "@/types";
 
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
@@ -37,42 +37,39 @@ export async function generateMetadata({
     };
   }
 
-  const description = product.Description
+  // Trust Signal: Ensure 'Vintage' or 'Antique' is in the description for clicks
+  const baseDescription = product.Description
     ? product.Description.substring(0, 155).replace(/\s+/g, " ").trim() + "..."
-    : "View details for this product on AlpialCanada.";
+    : "View details for this unique item on AlpialCanada.";
 
+  const trustDescription = `Authentic Collection: ${baseDescription}`;
+
+  // We allow the opengraph-image.tsx to handle the main OG image generation.
+  // However, we provide a fallback here just in case.
   const imageUrl = product.Images?.[0]?.url
     ? product.Images[0].url.startsWith("http")
       ? product.Images[0].url
       : `${strapiUrl}${product.Images[0].url}`
     : undefined;
 
-  const imageMeta = imageUrl
-    ? [
-        {
-          url: imageUrl,
-          width: product.Images[0].width,
-          height: product.Images[0].height,
-          alt: product.Name,
-        },
-      ]
-    : [];
-
   return {
     title: `${product.Name} | AlpialCanada`,
-    description: description,
+    description: trustDescription,
     alternates: {
       canonical: `/products/${documentId}`,
     },
     openGraph: {
-      title: `${product.Name} | AlpialCanada`,
-      description: description,
-      images: imageMeta,
+      title: product.Name,
+      description: trustDescription,
+      url: `https://www.alpialcanada.com/products/${documentId}`,
+      siteName: "AlpialCanada",
+      locale: "en_CA",
+      type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.Name} | AlpialCanada`,
-      description: description,
+      title: product.Name,
+      description: trustDescription,
       images: imageUrl ? [imageUrl] : [],
     },
   };

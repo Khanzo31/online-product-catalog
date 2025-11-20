@@ -9,15 +9,14 @@ import { Product, ProductImage } from "@/types";
 import ProductInquiryForm from "@/app/components/ProductInquiryForm";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import RelatedProducts from "@/app/components/RelatedProducts";
-import { ProductCardProps } from "@/app/components/ProductCard";
 import toast from "react-hot-toast";
 import SocialShareButtons from "@/app/components/SocialShareButtons";
 import RecentlyViewed from "@/app/components/RecentlyViewed";
 
-// --- LIGHTBOX IMPORTS ---
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import { ProductCardProps } from "@/app/components/ProductCard";
 
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
@@ -31,10 +30,11 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     product.Images?.[0] || null
   );
   const [announcement, setAnnouncement] = useState("");
-  // --- LIGHTBOX STATE ---
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const inquiryFormRef = useRef<HTMLDivElement>(null); // Ref for scrolling
+
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
   const [activeTab, setActiveTab] = useState("description");
@@ -116,6 +116,12 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     }
   };
 
+  const scrollToInquiry = () => {
+    if (inquiryFormRef.current) {
+      inquiryFormRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleImageSelect = (image: ProductImage, index: number) => {
     setSelectedImage(image);
     setAnnouncement(
@@ -155,7 +161,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   } = product;
 
   const handleNextImage = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation(); // Prevent opening lightbox when clicking arrows
+    if (e) e.stopPropagation();
     if (!Images || Images.length < 2) return;
     const currentIndex = Images.findIndex(
       (img) => img.id === selectedImage?.id
@@ -166,7 +172,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   };
 
   const handlePrevImage = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation(); // Prevent opening lightbox
+    if (e) e.stopPropagation();
     if (!Images || Images.length < 2) return;
     const currentIndex = Images.findIndex(
       (img) => img.id === selectedImage?.id
@@ -286,7 +292,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     return `${Name} - View ${index + 1} of ${Images.length}`;
   };
 
-  // Prepare slides for lightbox
   const slides = Images.map((img) => ({
     src: img.url.startsWith("http") ? img.url : `${strapiUrl}${img.url}`,
     alt: img.alternativeText || Name,
@@ -305,7 +310,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         />
       )}
 
-      {/* --- LIGHTBOX COMPONENT --- */}
       <Lightbox
         open={lightboxOpen}
         close={() => setLightboxOpen(false)}
@@ -319,7 +323,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         }}
       />
 
-      <main className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <main className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 mb-16 md:mb-0">
         <div aria-live="polite" className="sr-only">
           {announcement}
         </div>
@@ -362,7 +366,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               id="gallery-tabpanel"
               aria-labelledby={`gallery-tab-${selectedImage?.id}`}
               className="aspect-square relative mb-4 overflow-hidden rounded-lg border bg-gray-100 dark:bg-gray-800 dark:border-gray-700 cursor-zoom-in"
-              onClick={() => setLightboxOpen(true)} // Open lightbox on click
+              onClick={() => setLightboxOpen(true)}
             >
               {fullSelectedImageUrl ? (
                 <Image
@@ -383,7 +387,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 </div>
               )}
 
-              {/* Overlay instruction hint */}
               <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
                 Click to Zoom
               </div>
@@ -480,10 +483,10 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
               {Name}
             </h1>
-            <p className="mt-4 text-3xl text-gray-700 dark:text-gray-300">
+            <p className="mt-4 text-3xl text-gray-700 dark:text-gray-300 font-light">
               {priceFormatter.format(Price)}
             </p>
-            <div className="mt-6">
+            <div className="mt-6 hidden md:block">
               <button
                 onClick={handleToggleFavorite}
                 aria-pressed={isFavorite(documentId)}
@@ -565,7 +568,10 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               </div>
             </div>
 
-            <div className="mt-10 border dark:border-gray-700 shadow-sm pt-10 p-8 bg-white dark:bg-gray-800 rounded-lg">
+            <div
+              ref={inquiryFormRef}
+              className="mt-10 border dark:border-gray-700 shadow-sm pt-10 p-8 bg-white dark:bg-gray-800 rounded-lg"
+            >
               <h3 className="text-xl font-serif font-semibold mb-4 text-gray-900 dark:text-gray-200">
                 Interested in this product?
               </h3>
@@ -599,9 +605,41 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         </div>
         <RelatedProducts products={relatedProducts} />
 
-        {/* --- NEW RECENTLY VIEWED SECTION --- */}
         <RecentlyViewed currentProduct={product} />
       </main>
+
+      {/* --- MOBILE STICKY ACTION BAR --- */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 md:hidden z-40 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <button
+          onClick={handleToggleFavorite}
+          className={`flex-1 flex items-center justify-center py-3 rounded-sm border transition-colors ${
+            isFavorite(documentId)
+              ? "bg-gray-100 text-red-600 border-gray-200"
+              : "bg-white text-gray-700 border-gray-300"
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill={isFavorite(documentId) ? "currentColor" : "none"}
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={scrollToInquiry}
+          className="flex-[3] bg-amber-700 text-white py-3 rounded-sm font-serif text-lg tracking-wide hover:bg-amber-800"
+        >
+          Inquire Now
+        </button>
+      </div>
     </>
   );
 }

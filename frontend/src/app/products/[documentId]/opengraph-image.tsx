@@ -37,13 +37,14 @@ export default async function Image({
         <div
           style={{
             fontSize: 48,
-            background: "#f9f6f2",
+            background: "#f5f5f4", // stone-100
             width: "100%",
             height: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#333",
+            color: "#444",
+            fontFamily: "serif",
           }}
         >
           AlpialCanada
@@ -68,11 +69,12 @@ export default async function Image({
     (
       <div
         style={{
-          background: "#f9f6f2", // warm-bg
+          background: "#f5f5f4", // stone-100
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "row",
+          fontFamily: "Times New Roman, serif", // Enforce serif
         }}
       >
         {/* Left Side: Image */}
@@ -95,8 +97,10 @@ export default async function Image({
                 objectFit: "contain",
                 width: "100%",
                 height: "100%",
-                borderRadius: "12px",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                borderRadius: "4px",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+                backgroundColor: "white",
+                padding: "10px",
               }}
             />
           ) : (
@@ -104,12 +108,11 @@ export default async function Image({
               style={{
                 width: "100%",
                 height: "100%",
-                background: "#e5e7eb",
-                borderRadius: "12px",
+                background: "#e7e5e4",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#6b7280",
+                color: "#78716c",
                 fontSize: 24,
               }}
             >
@@ -126,29 +129,29 @@ export default async function Image({
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "40px",
+            padding: "50px",
+            borderLeft: "1px solid #d6d3d1",
           }}
         >
           <div
             style={{
-              fontSize: 24,
-              color: "#dc2626", // red-600
-              marginBottom: 10,
-              fontWeight: 700,
+              fontSize: 20,
+              color: "#b45309", // amber-700
+              marginBottom: 15,
+              fontWeight: 400,
               textTransform: "uppercase",
-              letterSpacing: "2px",
+              letterSpacing: "4px",
             }}
           >
             AlpialCanada
           </div>
           <div
             style={{
-              fontSize: 48,
-              fontWeight: 900,
-              color: "#111827",
-              lineHeight: 1.1,
-              marginBottom: 20,
-              // Clamp text length visually
+              fontSize: 56,
+              fontWeight: 700,
+              color: "#1c1917", // stone-900
+              lineHeight: 1,
+              marginBottom: 30,
               display: "flex",
             }}
           >
@@ -156,21 +159,24 @@ export default async function Image({
           </div>
           <div
             style={{
-              fontSize: 36,
-              color: "#4b5563",
-              fontWeight: 600,
+              fontSize: 42,
+              color: "#44403c", // stone-700
+              fontWeight: 400,
+              fontStyle: "italic",
             }}
           >
             {priceFormatter.format(product.Price)}
           </div>
           <div
             style={{
-              marginTop: 40,
-              fontSize: 18,
-              color: "#6b7280",
+              marginTop: 60,
+              fontSize: 16,
+              color: "#78716c",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
             }}
           >
-            Unique Antiques & Collectibles
+            Antiques & Collectibles
           </div>
         </div>
       </div>
