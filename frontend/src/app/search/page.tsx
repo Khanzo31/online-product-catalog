@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import ProductCard from "@/app/components/ProductCard";
 import ProductCardSkeleton from "@/app/components/ProductCardSkeleton";
-import { Product, ProductType, StrapiApiResponse } from "@/types"; // Import shared types
+import { Product, ProductType, StrapiApiResponse } from "@/types";
 
 const PAGE_SIZE = 12;
 

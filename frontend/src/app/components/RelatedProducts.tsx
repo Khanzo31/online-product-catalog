@@ -9,7 +9,7 @@ interface RelatedProductsProps {
 
 export default function RelatedProducts({ products }: RelatedProductsProps) {
   if (!products || products.length === 0) {
-    return null; // Don't render anything if there are no related products
+    return null;
   }
 
   return (

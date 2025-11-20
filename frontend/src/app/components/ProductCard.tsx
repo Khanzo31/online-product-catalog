@@ -6,17 +6,15 @@ import Link from "next/link";
 import { MouseEvent } from "react";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import toast from "react-hot-toast";
-
-interface ProductCardImage {
-  url: string;
-}
+import { ProductImage } from "@/types";
 
 export interface ProductCardProps {
   id: number;
   documentId: string;
   Name: string;
   Price: number;
-  Images: ProductCardImage[];
+  Images: ProductImage[];
+  createdAt?: string; // Added for "New" badge logic
 }
 
 export default function ProductCard({
@@ -24,7 +22,7 @@ export default function ProductCard({
 }: {
   product: ProductCardProps;
 }) {
-  const { documentId, Name, Price, Images } = product;
+  const { documentId, Name, Price, Images, createdAt } = product;
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
   const strapiUrl =
@@ -44,6 +42,13 @@ export default function ProductCard({
 
   const isFavorited = isFavorite(documentId);
 
+  // --- NEW ARRIVAL LOGIC ---
+  const isNewArrival = createdAt
+    ? (new Date().getTime() - new Date(createdAt).getTime()) /
+        (1000 * 3600 * 24) <
+      30 // 30 days threshold
+    : false;
+
   const handleFavoriteClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
@@ -61,7 +66,7 @@ export default function ProductCard({
         icon: "✅",
         style: {
           borderRadius: "10px",
-          background: "#4b5563", // gray-600
+          background: "#4b5563",
           color: "#ffffff",
         },
       });
@@ -71,7 +76,7 @@ export default function ProductCard({
         icon: "❤️",
         style: {
           borderRadius: "10px",
-          background: "#dc2626", // red-600
+          background: "#dc2626",
           color: "#ffffff",
         },
       });
@@ -84,6 +89,13 @@ export default function ProductCard({
       className="group block overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
     >
       <div className="relative">
+        {/* --- NEW BADGE --- */}
+        {isNewArrival && (
+          <span className="absolute top-2 left-2 z-10 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
+            NEW
+          </span>
+        )}
+
         <div className="relative h-56 w-full bg-gray-100 dark:bg-gray-800">
           {fullImageUrl ? (
             <Image

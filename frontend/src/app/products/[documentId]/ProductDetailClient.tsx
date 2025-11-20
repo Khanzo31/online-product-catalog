@@ -5,13 +5,19 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
-import { Product, ProductImage } from "@/types"; // Import shared types
+import { Product, ProductImage } from "@/types";
 import ProductInquiryForm from "@/app/components/ProductInquiryForm";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import RelatedProducts from "@/app/components/RelatedProducts";
 import { ProductCardProps } from "@/app/components/ProductCard";
 import toast from "react-hot-toast";
 import SocialShareButtons from "@/app/components/SocialShareButtons";
+import RecentlyViewed from "@/app/components/RecentlyViewed";
+
+// --- LIGHTBOX IMPORTS ---
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
 
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
@@ -25,6 +31,9 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     product.Images?.[0] || null
   );
   const [announcement, setAnnouncement] = useState("");
+  // --- LIGHTBOX STATE ---
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
@@ -145,7 +154,8 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     Product: productType,
   } = product;
 
-  const handleNextImage = () => {
+  const handleNextImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation(); // Prevent opening lightbox when clicking arrows
     if (!Images || Images.length < 2) return;
     const currentIndex = Images.findIndex(
       (img) => img.id === selectedImage?.id
@@ -155,7 +165,8 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     handleImageSelect(nextImage, nextIndex);
   };
 
-  const handlePrevImage = () => {
+  const handlePrevImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation(); // Prevent opening lightbox
     if (!Images || Images.length < 2) return;
     const currentIndex = Images.findIndex(
       (img) => img.id === selectedImage?.id
@@ -195,12 +206,10 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         prop.value !== undefined && prop.value !== null && prop.value !== ""
     );
 
-  // SEO Calculation
   const nextYear = new Date();
   nextYear.setFullYear(nextYear.getFullYear() + 1);
   const priceValidUntil = nextYear.toISOString().split("T")[0];
 
-  // --- SEO UPDATE: isSimilarTo logic ---
   const similarProductsSchema = relatedProducts.map((rp) => ({
     "@type": "Product",
     name: rp.Name,
@@ -249,7 +258,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         },
       },
     },
-    // Add Similar Items to schema
     isSimilarTo:
       similarProductsSchema.length > 0 ? similarProductsSchema : undefined,
   };
@@ -273,12 +281,16 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     ],
   };
 
-  // --- SEO UPDATE: Alt Text Logic ---
-  // Use Strapi's alternativeText if available, otherwise fallback to specific format
   const getAltText = (img: ProductImage, index: number) => {
     if (img.alternativeText) return img.alternativeText;
     return `${Name} - View ${index + 1} of ${Images.length}`;
   };
+
+  // Prepare slides for lightbox
+  const slides = Images.map((img) => ({
+    src: img.url.startsWith("http") ? img.url : `${strapiUrl}${img.url}`,
+    alt: img.alternativeText || Name,
+  }));
 
   return (
     <>
@@ -292,6 +304,21 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
       )}
+
+      {/* --- LIGHTBOX COMPONENT --- */}
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        index={selectedImageIndex}
+        slides={slides}
+        plugins={[Zoom]}
+        animation={{ fade: 250 }}
+        zoom={{
+          maxZoomPixelRatio: 3,
+          scrollToZoom: true,
+        }}
+      />
+
       <main className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div aria-live="polite" className="sr-only">
           {announcement}
@@ -334,19 +361,19 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               role="tabpanel"
               id="gallery-tabpanel"
               aria-labelledby={`gallery-tab-${selectedImage?.id}`}
-              className="aspect-square relative mb-4 overflow-hidden rounded-lg border bg-gray-100 dark:bg-gray-800 dark:border-gray-700"
+              className="aspect-square relative mb-4 overflow-hidden rounded-lg border bg-gray-100 dark:bg-gray-800 dark:border-gray-700 cursor-zoom-in"
+              onClick={() => setLightboxOpen(true)} // Open lightbox on click
             >
               {fullSelectedImageUrl ? (
                 <Image
                   src={fullSelectedImageUrl}
-                  // Update Alt Text Here
                   alt={
                     selectedImage
                       ? getAltText(selectedImage, selectedImageIndex ?? 0)
                       : Name
                   }
                   fill
-                  className="object-contain"
+                  className="object-contain hover:opacity-90 transition-opacity"
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority
                 />
@@ -355,6 +382,11 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                   No Image Available
                 </div>
               )}
+
+              {/* Overlay instruction hint */}
+              <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                Click to Zoom
+              </div>
 
               {Images && Images.length > 1 && (
                 <>
@@ -435,7 +467,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                   >
                     <Image
                       src={fullThumbnailUrl}
-                      alt={getAltText(img, index)} // Update Alt Text here too
+                      alt={getAltText(img, index)}
                       fill
                       className="object-cover"
                     />
@@ -566,6 +598,9 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           </div>
         </div>
         <RelatedProducts products={relatedProducts} />
+
+        {/* --- NEW RECENTLY VIEWED SECTION --- */}
+        <RecentlyViewed currentProduct={product} />
       </main>
     </>
   );

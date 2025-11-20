@@ -20,7 +20,6 @@ async function getFeaturedProducts(): Promise<ProductCardProps[]> {
   }
 }
 
-// Update the main component to be async and fetch data
 export default async function HomePage() {
   const featuredProducts = await getFeaturedProducts();
 
