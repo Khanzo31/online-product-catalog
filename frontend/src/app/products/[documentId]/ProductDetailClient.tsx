@@ -5,21 +5,13 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
-import { Product } from "./page";
+import { Product, ProductImage } from "@/types"; // Import shared types
 import ProductInquiryForm from "@/app/components/ProductInquiryForm";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import RelatedProducts from "@/app/components/RelatedProducts";
 import { ProductCardProps } from "@/app/components/ProductCard";
 import toast from "react-hot-toast";
 import SocialShareButtons from "@/app/components/SocialShareButtons";
-
-interface ProductDetailImage {
-  id: number;
-  url: string;
-  width: number;
-  height: number;
-  name: string;
-}
 
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
@@ -29,7 +21,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const [relatedProducts, setRelatedProducts] = useState<ProductCardProps[]>(
     []
   );
-  const [selectedImage, setSelectedImage] = useState(
+  const [selectedImage, setSelectedImage] = useState<ProductImage | null>(
     product.Images?.[0] || null
   );
   const [announcement, setAnnouncement] = useState("");
@@ -47,22 +39,25 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
   useEffect(() => {
     const fetchRelatedProducts = async () => {
-      const allProductsRes = await fetch(
-        `${strapiUrl}/api/products?populate=*`
-      );
-      if (allProductsRes.ok) {
-        const allProductsResponseData = await allProductsRes.json();
-        const allProducts: Product[] = allProductsResponseData.data || [];
-        if (product.Product && allProducts.length > 0) {
-          const related = allProducts
-            .filter(
-              (p) =>
-                p.Product?.documentId === product.Product?.documentId &&
-                p.documentId !== product.documentId
-            )
-            .slice(0, 4);
-          setRelatedProducts(related);
+      if (!product.Product?.documentId) return;
+
+      const queryParams = new URLSearchParams({
+        "filters[Product][documentId][$eq]": product.Product.documentId,
+        "filters[documentId][$ne]": product.documentId,
+        "pagination[limit]": "4",
+        populate: "Images",
+      });
+
+      try {
+        const res = await fetch(
+          `${strapiUrl}/api/products?${queryParams.toString()}`
+        );
+        if (res.ok) {
+          const responseData = await res.json();
+          setRelatedProducts(responseData.data || []);
         }
+      } catch (error) {
+        console.error("Failed to fetch related products", error);
       }
     };
     fetchRelatedProducts();
@@ -112,7 +107,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     }
   };
 
-  const handleImageSelect = (image: ProductDetailImage, index: number) => {
+  const handleImageSelect = (image: ProductImage, index: number) => {
     setSelectedImage(image);
     setAnnouncement(
       `Now viewing Image ${index + 1} of ${product?.Images?.length}: ${
@@ -150,7 +145,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     Product: productType,
   } = product;
 
-  // --- START OF UPDATE: Add handlers for next/previous image ---
   const handleNextImage = () => {
     if (!Images || Images.length < 2) return;
     const currentIndex = Images.findIndex(
@@ -170,7 +164,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     const prevImage = Images[prevIndex];
     handleImageSelect(prevImage, prevIndex);
   };
-  // --- END OF UPDATE ---
 
   const priceFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -202,6 +195,23 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         prop.value !== undefined && prop.value !== null && prop.value !== ""
     );
 
+  // SEO Calculation
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  const priceValidUntil = nextYear.toISOString().split("T")[0];
+
+  // --- SEO UPDATE: isSimilarTo logic ---
+  const similarProductsSchema = relatedProducts.map((rp) => ({
+    "@type": "Product",
+    name: rp.Name,
+    url: `https://www.alpialcanada.com/products/${rp.documentId}`,
+    offers: {
+      "@type": "Offer",
+      price: rp.Price,
+      priceCurrency: "CAD",
+    },
+  }));
+
   const productJsonLd = {
     "@context": "https://schema.org/",
     "@type": "Product",
@@ -217,7 +227,31 @@ export default function ProductDetailClient({ product }: { product: Product }) {
       price: product.Price,
       availability: "https://schema.org/InStock",
       itemCondition: "https://schema.org/UsedCondition",
+      priceValidUntil: priceValidUntil,
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "CA",
+        returnPolicyCategory:
+          "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 30,
+        returnMethod: "https://schema.org/ReturnByMail",
+      },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: 0,
+          currency: "CAD",
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "CA",
+        },
+      },
     },
+    // Add Similar Items to schema
+    isSimilarTo:
+      similarProductsSchema.length > 0 ? similarProductsSchema : undefined,
   };
 
   const breadcrumbJsonLd = {
@@ -237,6 +271,13 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         item: pageUrl,
       },
     ],
+  };
+
+  // --- SEO UPDATE: Alt Text Logic ---
+  // Use Strapi's alternativeText if available, otherwise fallback to specific format
+  const getAltText = (img: ProductImage, index: number) => {
+    if (img.alternativeText) return img.alternativeText;
+    return `${Name} - View ${index + 1} of ${Images.length}`;
   };
 
   return (
@@ -298,9 +339,12 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               {fullSelectedImageUrl ? (
                 <Image
                   src={fullSelectedImageUrl}
-                  alt={`${Name} - View ${(selectedImageIndex ?? 0) + 1} of ${
-                    Images.length
-                  }`}
+                  // Update Alt Text Here
+                  alt={
+                    selectedImage
+                      ? getAltText(selectedImage, selectedImageIndex ?? 0)
+                      : Name
+                  }
                   fill
                   className="object-contain"
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -312,7 +356,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 </div>
               )}
 
-              {/* --- START OF UPDATE: Add navigation arrows --- */}
               {Images && Images.length > 1 && (
                 <>
                   <button
@@ -359,7 +402,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                   </button>
                 </>
               )}
-              {/* --- END OF UPDATE --- */}
             </div>
             <div
               role="tablist"
@@ -393,7 +435,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                   >
                     <Image
                       src={fullThumbnailUrl}
-                      alt={`View Image ${index + 1}`}
+                      alt={getAltText(img, index)} // Update Alt Text here too
                       fill
                       className="object-cover"
                     />

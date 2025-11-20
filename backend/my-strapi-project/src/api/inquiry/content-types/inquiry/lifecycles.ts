@@ -2,12 +2,8 @@
 
 import { Resend } from "resend";
 
-// --- START OF DEFINITIVE FIX ---
-// Define a more specific type that correctly reflects Strapi's potential response.
 interface PopulatedInquiry {
-  // Use `string | number` for IDs.
   id: string | number;
-  // Mark properties as optional to match Strapi's service return type.
   CustomerName?: string;
   CustomerEmail?: string;
   Message?: string;
@@ -17,7 +13,6 @@ interface PopulatedInquiry {
     documentId?: string;
   };
 }
-// --- END OF DEFINITIVE FIX ---
 
 export default {
   async afterCreate(event) {
@@ -33,8 +28,6 @@ export default {
       }
     );
 
-    // This comprehensive check is a "type guard". It ensures all necessary
-    // properties exist and satisfies TypeScript.
     if (
       !inquiry ||
       !inquiry.Product ||
@@ -49,14 +42,14 @@ export default {
       return;
     }
 
-    // After the check above, TypeScript knows these values are defined.
     const customerName = inquiry.CustomerName;
     const customerEmail = inquiry.CustomerEmail;
-    const customerMessage = inquiry.Message || "No message provided."; // Provide a fallback for the optional message
+    const customerMessage = inquiry.Message || "No message provided.";
     const productName = inquiry.Product.Name;
     const productUrl = `https://www.alpialcanada.com/products/${inquiry.Product.documentId}`;
 
-    const adminEmail = "alpialcanada@gmail.com";
+    // --- CHANGED: Use Environment Variable with fallback ---
+    const adminEmail = process.env.ADMIN_EMAIL || "alpialcanada@gmail.com";
 
     try {
       await Promise.all([

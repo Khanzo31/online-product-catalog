@@ -1,34 +1,10 @@
+// frontend/src/app/search/page.tsx
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import ProductCard, { ProductCardProps } from "@/app/components/ProductCard";
+import ProductCard from "@/app/components/ProductCard";
 import ProductCardSkeleton from "@/app/components/ProductCardSkeleton";
-
-// --- START: TYPE DEFINITIONS (Simplified) ---
-interface ProductType {
-  id: number;
-  documentId: string;
-  Name: string;
-}
-interface Product extends ProductCardProps {
-  SKU: string;
-  Description: string;
-  Product?: ProductType;
-}
-
-// A type for the API response structure
-interface StrapiApiResponse<T> {
-  data: T[];
-  meta: {
-    pagination: {
-      page: number;
-      pageSize: number;
-      pageCount: number;
-      total: number;
-    };
-  };
-}
-// --- END: TYPE DEFINITIONS ---
+import { Product, ProductType, StrapiApiResponse } from "@/types"; // Import shared types
 
 const PAGE_SIZE = 12;
 
@@ -60,8 +36,6 @@ export default function SearchPage() {
     async (targetPage: number, isNewSearch: boolean = false) => {
       if (isNewSearch) {
         setLoading(true);
-        // --- THIS IS THE FIX ---
-        // We must reset the page state to 1 whenever a new search is initiated.
         setPage(1);
       } else {
         setLoadingMore(true);

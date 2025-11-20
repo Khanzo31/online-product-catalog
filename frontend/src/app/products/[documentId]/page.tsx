@@ -2,32 +2,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductDetailClient from "./ProductDetailClient";
-
-// --- Type Definitions ---
-interface ProductDetailImage {
-  id: number;
-  url: string;
-  width: number;
-  height: number;
-  name: string;
-}
-interface ProductType {
-  id: number;
-  documentId: string;
-  Name: string;
-  CustomProperties?: { name: string; type: string }[];
-}
-export interface Product {
-  id: number;
-  documentId: string;
-  Name: string;
-  Price: number;
-  Images: ProductDetailImage[];
-  SKU: string;
-  Description: string;
-  CustomPropertyValues?: { [key: string]: string | number | boolean };
-  Product?: ProductType;
-}
+import { Product } from "@/types"; // Import shared type
 
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
@@ -86,7 +61,6 @@ export async function generateMetadata({
   return {
     title: `${product.Name} | AlpialCanada`,
     description: description,
-    // --- UPDATE: Added canonical URL for the product ---
     alternates: {
       canonical: `/products/${documentId}`,
     },
@@ -95,7 +69,6 @@ export async function generateMetadata({
       description: description,
       images: imageMeta,
     },
-    // --- UPDATE: Added Twitter-specific card metadata ---
     twitter: {
       card: "summary_large_image",
       title: `${product.Name} | AlpialCanada`,
