@@ -1,20 +1,56 @@
-/* CORRECTED FOR TAILWIND CSS v4 */
+/* frontend/src/app/globals.css */
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 
+/* --- THEME: Warm Stone & Mahogany --- */
 :root {
-  --background: #f9f6f2;
-  --foreground: #171717;
+  /* Warm off-white (Stone-50) */
+  --background: #fafaf9;
+  /* Dark Stone/Gray (Gray-900) */
+  --foreground: #111827;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Deep Charcoal (Gray-950) */
+    --background: #030712;
+    /* Soft Gray (Gray-200) */
+    --foreground: #e5e7eb;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  /* Ensure smooth text rendering for serif fonts */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out forwards;
 }

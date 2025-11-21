@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import ProductCard from "@/app/components/ProductCard";
 import ProductCardSkeleton from "@/app/components/ProductCardSkeleton";
 import { Product, ProductType, StrapiApiResponse } from "@/types";
-import RecentlyViewed from "@/app/components/RecentlyViewed"; // Import RecentlyViewed
+import RecentlyViewed from "@/app/components/RecentlyViewed";
 
 const PAGE_SIZE = 12;
 
@@ -19,9 +19,10 @@ export default function SearchPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0); // Added state for total items
   const [statusMessage, setStatusMessage] = useState("Loading products...");
   const [sortBy, setSortBy] = useState("updatedAt:desc");
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false); // Mobile State
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const isInitialMount = useRef(true);
 
   const strapiUrl =
@@ -76,6 +77,7 @@ export default function SearchPage() {
         const paginationMeta = responseData.meta.pagination;
 
         setTotalPages(paginationMeta.pageCount);
+        setTotalItems(paginationMeta.total); // Set total items
 
         setResults((prevResults) => {
           const updatedResults = isNewSearch
@@ -155,7 +157,6 @@ export default function SearchPage() {
     });
   }
 
-  // Reusable Filter Component to avoid code duplication
   const FilterContent = () => (
     <>
       <div className="space-y-6">
@@ -250,19 +251,17 @@ export default function SearchPage() {
           </div>
         </aside>
 
-        {/* --- MOBILE DRAWER (Modal) --- */}
+        {/* --- MOBILE DRAWER --- */}
         {isMobileFiltersOpen && (
           <div
             className="fixed inset-0 z-50 lg:hidden"
             role="dialog"
             aria-modal="true"
           >
-            {/* Backdrop */}
             <div
               className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
               onClick={() => setIsMobileFiltersOpen(false)}
             />
-            {/* Drawer */}
             <div className="fixed inset-y-0 right-0 w-full max-w-xs bg-white dark:bg-gray-900 shadow-xl flex flex-col animate-slide-in-right">
               <div className="flex items-center justify-between p-6 border-b border-stone-200 dark:border-gray-700">
                 <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-gray-100">
@@ -368,6 +367,10 @@ export default function SearchPage() {
               </div>
               {page < totalPages && (
                 <div className="text-center mt-16">
+                  {/* --- POLISH: Showing X of Y Items --- */}
+                  <p className="text-sm text-gray-500 mb-4 font-serif italic">
+                    Showing {results.length} of {totalItems} items
+                  </p>
                   <button
                     onClick={loadMore}
                     disabled={loadingMore}
@@ -379,13 +382,11 @@ export default function SearchPage() {
               )}
             </>
           ) : (
-            // --- SMART EMPTY STATE ---
             <div className="space-y-12">
               <div className="text-center py-16 border border-stone-100 bg-stone-50 dark:bg-gray-800 dark:border-gray-700 rounded-sm">
                 <h3 className="font-serif text-xl text-gray-800 dark:text-gray-200 mb-2">
                   No Products Found
                 </h3>
-                {/* Fixed ESLint Error below */}
                 <p className="text-gray-500 dark:text-gray-400 font-light">
                   We couldn&apos;t find any items matching your criteria.
                 </p>
@@ -396,8 +397,6 @@ export default function SearchPage() {
                   Clear all filters
                 </button>
               </div>
-
-              {/* Show recently viewed to keep them on site */}
               <RecentlyViewed />
             </div>
           )}

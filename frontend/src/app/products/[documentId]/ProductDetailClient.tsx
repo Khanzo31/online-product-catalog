@@ -33,7 +33,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const inquiryFormRef = useRef<HTMLDivElement>(null); // Ref for scrolling
+  const inquiryFormRef = useRef<HTMLDivElement>(null);
 
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
@@ -109,7 +109,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         icon: "❤️",
         style: {
           borderRadius: "10px",
-          background: "#dc2626",
+          background: "#991b1b",
           color: "#ffffff",
         },
       });
@@ -281,6 +281,12 @@ export default function ProductDetailClient({ product }: { product: Product }) {
       {
         "@type": "ListItem",
         position: 2,
+        name: "Search",
+        item: "https://www.alpialcanada.com/search",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
         name: product.Name,
         item: pageUrl,
       },
@@ -289,10 +295,12 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
   const getAltText = (img: ProductImage, index: number) => {
     if (img.alternativeText) return img.alternativeText;
-    return `${Name} - View ${index + 1} of ${Images.length}`;
+    // --- FIX 1: Added optional chaining for length ---
+    return `${Name} - View ${index + 1} of ${Images?.length || 0}`;
   };
 
-  const slides = Images.map((img) => ({
+  // --- FIX 2: Fallback to empty array if Images is null to prevent map crash ---
+  const slides = (Images || []).map((img) => ({
     src: img.url.startsWith("http") ? img.url : `${strapiUrl}${img.url}`,
     alt: img.alternativeText || Name,
   }));
@@ -328,33 +336,37 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           {announcement}
         </div>
 
-        <nav aria-label="Breadcrumb" className="mb-6">
-          <ol role="list" className="flex items-center space-x-2 text-sm">
+        <nav aria-label="Breadcrumb" className="mb-8">
+          <ol
+            role="list"
+            className="flex items-center space-x-2 text-sm text-gray-500"
+          >
             <li>
-              <Link
-                href="/search"
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                Products
+              <Link href="/" className="hover:text-amber-700 transition-colors">
+                Home
               </Link>
             </li>
             <li>
-              <div className="flex items-center">
-                <svg
-                  className="h-5 w-5 flex-shrink-0 text-gray-300 dark:text-gray-600"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  aria-hidden="true"
-                >
-                  <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
-                </svg>
-                <span
-                  aria-current="page"
-                  className="ml-2 font-medium text-gray-700 dark:text-gray-200 truncate"
-                >
-                  {Name}
-                </span>
-              </div>
+              <span className="text-gray-300">/</span>
+            </li>
+            <li>
+              <Link
+                href="/search"
+                className="hover:text-amber-700 transition-colors"
+              >
+                Search
+              </Link>
+            </li>
+            <li>
+              <span className="text-gray-300">/</span>
+            </li>
+            <li>
+              <span
+                aria-current="page"
+                className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px] inline-block align-bottom capitalize"
+              >
+                {Name}
+              </span>
             </li>
           </ol>
         </nav>
@@ -365,7 +377,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               role="tabpanel"
               id="gallery-tabpanel"
               aria-labelledby={`gallery-tab-${selectedImage?.id}`}
-              className="aspect-square relative mb-4 overflow-hidden rounded-lg border bg-gray-100 dark:bg-gray-800 dark:border-gray-700 cursor-zoom-in"
+              className="aspect-square relative mb-4 overflow-hidden rounded-sm border bg-stone-50 dark:bg-gray-800 dark:border-gray-700 cursor-zoom-in shadow-sm"
               onClick={() => setLightboxOpen(true)}
             >
               {fullSelectedImageUrl ? (
@@ -438,14 +450,16 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 </>
               )}
             </div>
+
             <div
               role="tablist"
               aria-label="Product image thumbnails"
-              className="flex space-x-2"
+              className="flex space-x-3 overflow-x-auto pb-2"
               onKeyDown={(e) =>
                 handleThumbnailKeyDown(e, selectedImageIndex ?? 0)
               }
             >
+              {/* --- FIX 3: Added optional chaining for mapping --- */}
               {Images?.map((img, index) => {
                 const fullThumbnailUrl = img.url.startsWith("http")
                   ? img.url
@@ -462,11 +476,11 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                       thumbnailRefs.current[index] = el;
                     }}
                     onClick={() => handleImageSelect(img, index)}
-                    className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
+                    className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-sm border-2 transition-all ${
                       selectedImage?.id === img.id
-                        ? "border-red-600"
-                        : "border-transparent hover:border-gray-400"
-                    } focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2`}
+                        ? "border-amber-600 opacity-100 ring-2 ring-amber-100"
+                        : "border-transparent hover:border-stone-300 opacity-60 hover:opacity-100"
+                    } focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2`}
                   >
                     <Image
                       src={fullThumbnailUrl}
@@ -480,26 +494,28 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             </div>
           </div>
           <div>
-            <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+            <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 capitalize">
               {Name}
             </h1>
             <p className="mt-4 text-3xl text-gray-700 dark:text-gray-300 font-light">
               {priceFormatter.format(Price)}
             </p>
-            <div className="mt-6 hidden md:block">
+            <div className="mt-8 hidden md:block">
               <button
                 onClick={handleToggleFavorite}
                 aria-pressed={isFavorite(documentId)}
-                className={`w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white transition-colors ${
+                className={`w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-sm transition-colors ${
                   isFavorite(documentId)
-                    ? "bg-gray-600 hover:bg-gray-700 focus:ring-gray-500"
-                    : "bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                } focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                    ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    : "bg-red-900 text-white hover:bg-red-800"
+                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-900`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 mr-2"
-                  fill="none"
+                  className={`h-6 w-6 mr-2 ${
+                    isFavorite(documentId) ? "text-red-700" : "text-white"
+                  }`}
+                  fill={isFavorite(documentId) ? "currentColor" : "none"}
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -508,25 +524,24 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    className={isFavorite(documentId) ? "fill-current" : ""}
                   />
                 </svg>
                 {isFavorite(documentId)
-                  ? "Remove from Favorites"
+                  ? "Saved to Favorites"
                   : "Add to Favorites"}
               </button>
             </div>
 
-            <div className="mt-8">
+            <div className="mt-10">
               <div className="border-b border-gray-200 dark:border-gray-700">
                 <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                   <button
                     onClick={() => setActiveTab("description")}
                     className={`${
                       activeTab === "description"
-                        ? "border-red-600 text-red-700 dark:text-red-500"
+                        ? "border-amber-600 text-amber-700 dark:text-amber-500"
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-600"
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm tracking-wide uppercase`}
                   >
                     Description
                   </button>
@@ -535,9 +550,9 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                       onClick={() => setActiveTab("specs")}
                       className={`${
                         activeTab === "specs"
-                          ? "border-red-600 text-red-700 dark:text-red-500"
+                          ? "border-amber-600 text-amber-700 dark:text-amber-500"
                           : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-600"
-                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm tracking-wide uppercase`}
                     >
                       Specifications
                     </button>
@@ -547,19 +562,24 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
               <div className="mt-6">
                 {activeTab === "description" && (
-                  <article className="prose lg:prose-lg max-w-none dark:prose-invert animate-fade-in-up">
+                  <article className="prose lg:prose-lg max-w-none dark:prose-invert animate-fade-in-up text-gray-600 dark:text-gray-300 leading-relaxed">
                     <ReactMarkdown>{Description}</ReactMarkdown>
                   </article>
                 )}
                 {activeTab === "specs" && (
                   <div className="animate-fade-in-up">
-                    <dl className="space-y-4 text-base text-gray-600 dark:text-gray-300">
+                    <dl className="divide-y divide-stone-100 dark:divide-gray-800">
                       {propertiesToRender.map((prop) => (
-                        <div key={prop.name} className="flex gap-4">
-                          <dt className="font-medium text-gray-900 dark:text-white w-1/3">
+                        <div
+                          key={prop.name}
+                          className="grid grid-cols-3 gap-4 py-4"
+                        >
+                          <dt className="font-medium text-gray-900 dark:text-white col-span-1">
                             {prop.name}
                           </dt>
-                          <dd className="w-2/3">{formatValue(prop.value)}</dd>
+                          <dd className="col-span-2 text-gray-600 dark:text-gray-300">
+                            {formatValue(prop.value)}
+                          </dd>
                         </div>
                       ))}
                     </dl>
@@ -570,10 +590,10 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
             <div
               ref={inquiryFormRef}
-              className="mt-10 border dark:border-gray-700 shadow-sm pt-10 p-8 bg-white dark:bg-gray-800 rounded-lg"
+              className="mt-12 border border-stone-200 dark:border-gray-700 shadow-sm pt-10 p-8 bg-stone-50 dark:bg-gray-800 rounded-sm"
             >
-              <h3 className="text-xl font-serif font-semibold mb-4 text-gray-900 dark:text-gray-200">
-                Interested in this product?
+              <h3 className="text-xl font-serif font-semibold mb-6 text-gray-900 dark:text-gray-200">
+                Request Information
               </h3>
               <ProductInquiryForm
                 productId={documentId}
@@ -583,7 +603,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                     icon: "✅",
                     style: {
                       borderRadius: "10px",
-                      background: "#dc2626",
+                      background: "#166534",
                       color: "#ffffff",
                     },
                   })
@@ -597,9 +617,9 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
             <Link
               href="/search"
-              className="mt-10 inline-block text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-sm"
+              className="mt-12 inline-block text-amber-700 hover:text-amber-900 dark:hover:text-amber-500 hover:underline focus:outline-none rounded-sm font-medium"
             >
-              ← Back to all products
+              ← Back to Collection
             </Link>
           </div>
         </div>
@@ -614,7 +634,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           onClick={handleToggleFavorite}
           className={`flex-1 flex items-center justify-center py-3 rounded-sm border transition-colors ${
             isFavorite(documentId)
-              ? "bg-gray-100 text-red-600 border-gray-200"
+              ? "bg-red-50 text-red-700 border-red-200"
               : "bg-white text-gray-700 border-gray-300"
           }`}
         >
@@ -635,7 +655,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
         </button>
         <button
           onClick={scrollToInquiry}
-          className="flex-[3] bg-amber-700 text-white py-3 rounded-sm font-serif text-lg tracking-wide hover:bg-amber-800"
+          className="flex-[3] bg-red-900 text-white py-3 rounded-sm font-serif text-lg tracking-wide hover:bg-red-800"
         >
           Inquire Now
         </button>

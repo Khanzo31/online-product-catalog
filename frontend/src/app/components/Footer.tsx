@@ -6,45 +6,43 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-800 text-white mt-auto">
-      <div className="container mx-auto px-4 py-8 text-center">
-        <p className="text-lg font-semibold">AlpialCanada</p>
+    // --- POLISH: Changed bg-gray-800 to bg-gray-900 ---
+    <footer className="bg-gray-900 text-white mt-auto border-t border-gray-800">
+      <div className="container mx-auto px-4 py-12 text-center">
+        <p className="font-serif text-xl font-semibold tracking-wider">
+          AlpialCanada
+        </p>
 
-        <div className="mt-4 flex justify-center items-center gap-x-6 gap-y-2 flex-wrap text-gray-300">
-          {/* --- OBFUSCATED EMAIL ---
-              This displays 'alpialcanada@gmail.com' to users but is structured
-              in reverse in the HTML to confuse basic email-harvesting bots.
-              The 'direction: rtl' and 'unicode-bidi: bidi-override' CSS properties
-              make the browser render the reversed text in the correct order.
-           */}
+        <div className="mt-6 flex justify-center items-center gap-x-6 gap-y-3 flex-wrap text-gray-400 text-sm tracking-wide">
           <span
             style={{
               direction: "rtl",
               unicodeBidi: "bidi-override",
             }}
+            className="hover:text-white transition-colors"
           >
             moc.liamg@adanaclaipia
           </span>
 
-          <span className="hidden sm:inline text-gray-500">|</span>
-          <span>613-302-0549</span>
+          <span className="hidden sm:inline text-gray-600">|</span>
+          <span className="hover:text-white transition-colors">
+            613-302-0549
+          </span>
 
-          {/* --- START OF UPDATE --- */}
-          <span className="hidden sm:inline text-gray-500">|</span>
-          <span className="inline-flex items-center">
+          <span className="hidden sm:inline text-gray-600">|</span>
+          <span className="inline-flex items-center hover:text-white transition-colors">
             <Image
               src="/globe.svg"
               alt="Location"
-              width={16}
-              height={16}
-              className="mr-2 filter invert"
+              width={14}
+              height={14}
+              className="mr-2 filter invert opacity-70"
             />
             Located in Ottawa, Canada
           </span>
-          {/* --- END OF UPDATE --- */}
         </div>
 
-        <p className="mt-6 text-sm text-gray-400">
+        <p className="mt-8 text-xs text-gray-600 uppercase tracking-widest">
           © {currentYear} AlpialCanada. All Rights Reserved.
         </p>
       </div>

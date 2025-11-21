@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     siteName: "AlpialCanada",
     images: [
       {
-        url: "/product-collage-1.png", // Next.js resolves this to an absolute URL
+        url: "/product-collage-1.png",
         width: 1200,
         height: 630,
         alt: "A collage of collectible die-cast cars and antiques.",
@@ -60,14 +60,10 @@ export const metadata: Metadata = {
     images: ["/product-collage-1.png"],
   },
 
-  // --- THIS IS THE RECOMMENDED UPDATE ---
   icons: {
-    // This is the primary icon Google will look for.
     icon: "/favicon.ico",
-    // This provides a high-resolution icon for Apple devices and other services.
     apple: "/apple-touch-icon.png",
   },
-  // --- END OF UPDATE ---
 };
 
 export default function RootLayout({
@@ -111,7 +107,8 @@ export default function RootLayout({
           <Toaster position="bottom-right" />
           <SuspenseWrapper />
           <Header />
-          <main className="flex-grow">{children}</main>
+          {/* --- FIX: Added padding-top to account for fixed header --- */}
+          <main className="flex-grow pt-24 md:pt-28">{children}</main>
           <Footer />
           <CookieConsentBanner />
         </FavoritesProvider>

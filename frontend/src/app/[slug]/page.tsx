@@ -3,8 +3,8 @@
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import type { Metadata } from "next";
+import Link from "next/link";
 
-// Interface (no change)
 interface Page {
   id: number;
   Title: string;
@@ -15,7 +15,6 @@ interface Page {
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
-// Data fetching function (no change)
 async function getPageBySlug(slug: string): Promise<Page | null> {
   const apiUrl = `${strapiUrl}/api/pages`;
   try {
@@ -35,17 +34,13 @@ async function getPageBySlug(slug: string): Promise<Page | null> {
   }
 }
 
-// --- START OF FIX: UPDATE PROPS TYPE ---
-// The generateMetadata function also needs to handle the Promise-based params.
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  // Await the promise to get the slug
   const { slug } = await params;
   const page = await getPageBySlug(slug);
-  // --- END OF FIX ---
 
   if (!page) {
     return {
@@ -70,26 +65,56 @@ export async function generateMetadata({
   };
 }
 
-// --- START OF FIX: UPDATE PAGE COMPONENT PROPS ---
 export default async function StaticPage({
   params,
 }: {
-  // 1. Type params as a Promise containing the slug object
   params: Promise<{ slug: string }>;
 }) {
-  // 2. Await the params promise to get the resolved object
   const { slug } = await params;
   const page = await getPageBySlug(slug);
-  // --- END OF FIX ---
 
   if (!page) {
     notFound();
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8">{page.Title}</h1>
-      <article className="prose lg:prose-lg max-w-none">
+    <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8 max-w-4xl">
+      <nav aria-label="Breadcrumb" className="mb-8">
+        <ol
+          role="list"
+          className="flex items-center space-x-2 text-sm text-gray-500"
+        >
+          <li>
+            <Link href="/" className="hover:text-amber-700 transition-colors">
+              Home
+            </Link>
+          </li>
+          <li>
+            <span className="text-gray-300">/</span>
+          </li>
+          <li>
+            <span
+              aria-current="page"
+              className="font-medium text-gray-900 dark:text-gray-100 capitalize"
+            >
+              {page.Title}
+            </span>
+          </li>
+        </ol>
+      </nav>
+
+      <header className="mb-10 text-center border-b border-stone-200 dark:border-gray-700 pb-10">
+        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-4">
+          {page.Title}
+        </h1>
+        <div className="h-1 w-20 bg-amber-700 mx-auto rounded-full"></div>
+      </header>
+
+      <article className="prose prose-lg prose-stone dark:prose-invert max-w-none animate-fade-in-up font-light leading-relaxed">
+        {/* 
+           Note: Ensure your Strapi content uses clean Markdown headers (##, ###) 
+           The 'prose-stone' class will automatically style them with warm gray tones.
+        */}
         <ReactMarkdown>{page.Content}</ReactMarkdown>
       </article>
     </div>

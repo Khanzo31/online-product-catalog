@@ -70,12 +70,33 @@ export default function ProductInquiryForm({
     }
   };
 
+  if (status === "success") {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-sm p-6 text-center animate-fade-in-up">
+        <h4 className="text-green-800 font-serif text-lg font-semibold mb-2">
+          Inquiry Sent!
+        </h4>
+        <p className="text-green-700 mb-4">
+          We have received your message regarding{" "}
+          <span className="font-semibold">{productName}</span> and will get back
+          to you shortly.
+        </p>
+        <button
+          onClick={() => setStatus("idle")}
+          className="text-sm font-medium text-green-800 underline hover:text-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 rounded-sm px-2 py-1"
+        >
+          Send another inquiry
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <label
           htmlFor="customerName"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5"
         >
           Your Name
         </label>
@@ -85,13 +106,14 @@ export default function ProductInquiryForm({
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+          className="block w-full px-4 py-3 border border-gray-300 rounded-sm shadow-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-colors"
+          placeholder="John Doe"
         />
       </div>
       <div>
         <label
           htmlFor="customerEmail"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5"
         >
           Your Email
         </label>
@@ -101,13 +123,14 @@ export default function ProductInquiryForm({
           value={customerEmail}
           onChange={(e) => setCustomerEmail(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+          className="block w-full px-4 py-3 border border-gray-300 rounded-sm shadow-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-colors"
+          placeholder="john@example.com"
         />
       </div>
       <div>
         <label
           htmlFor="message"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5"
         >
           Message
         </label>
@@ -117,30 +140,29 @@ export default function ProductInquiryForm({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-600 focus:border-red-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+          className="block w-full px-4 py-3 border border-gray-300 rounded-sm shadow-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-colors"
+          placeholder="I'm interested in this item..."
         ></textarea>
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        Inquiring about: <strong>{productName}</strong>
+      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+        Inquiring about:{" "}
+        <strong className="text-gray-800 dark:text-gray-200 not-italic capitalize">
+          {productName}
+        </strong>
       </p>
       <div>
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 disabled:bg-red-300"
+          className="w-full bg-red-900 text-white py-3.5 px-4 rounded-sm hover:bg-red-800 shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-900 disabled:bg-red-200 disabled:cursor-not-allowed font-serif font-medium tracking-wide text-lg"
         >
           {status === "submitting" ? "Sending..." : "Send Inquiry"}
         </button>
       </div>
-      {feedbackMessage && status !== "idle" && (
-        <p
-          className={`text-sm mt-2 ${
-            status === "error" ? "text-red-600" : "text-green-600"
-          }`}
-          aria-live="assertive"
-        >
+      {feedbackMessage && status === "error" && (
+        <div className="bg-red-50 text-red-800 p-3 rounded-sm border border-red-100 text-sm text-center">
           {feedbackMessage}
-        </p>
+        </div>
       )}
     </form>
   );
