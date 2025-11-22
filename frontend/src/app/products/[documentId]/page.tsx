@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductDetailClient from "./ProductDetailClient";
 import { Product } from "@/types";
+import { cookies } from "next/headers"; // Import cookies
 
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
@@ -37,15 +38,12 @@ export async function generateMetadata({
     };
   }
 
-  // Trust Signal: Ensure 'Vintage' or 'Antique' is in the description for clicks
   const baseDescription = product.Description
     ? product.Description.substring(0, 155).replace(/\s+/g, " ").trim() + "..."
     : "View details for this unique item on AlpialCanada.";
 
   const trustDescription = `Authentic Collection: ${baseDescription}`;
 
-  // We allow the opengraph-image.tsx to handle the main OG image generation.
-  // However, we provide a fallback here just in case.
   const imageUrl = product.Images?.[0]?.url
     ? product.Images[0].url.startsWith("http")
       ? product.Images[0].url
@@ -79,9 +77,15 @@ export default async function ProductPage({ params }: PagePromiseProps) {
   const { documentId } = await params;
   const product = await getProductData(documentId);
 
+  // --- CHECK ADMIN COOKIE ---
+  const cookieStore = await cookies();
+  const password = cookieStore.get("dashboard_password")?.value;
+  const isAdmin = password === process.env.DASHBOARD_PASSWORD;
+
   if (!product) {
     notFound();
   }
 
-  return <ProductDetailClient product={product} />;
+  // Pass isAdmin status to client
+  return <ProductDetailClient product={product} isAdmin={isAdmin} />;
 }

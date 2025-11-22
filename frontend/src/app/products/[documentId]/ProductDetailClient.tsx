@@ -12,6 +12,7 @@ import RelatedProducts from "@/app/components/RelatedProducts";
 import toast from "react-hot-toast";
 import SocialShareButtons from "@/app/components/SocialShareButtons";
 import RecentlyViewed from "@/app/components/RecentlyViewed";
+import AdminControls from "@/app/components/AdminControls";
 
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
@@ -21,8 +22,14 @@ import { ProductCardProps } from "@/app/components/ProductCard";
 const strapiUrl =
   process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
-export default function ProductDetailClient({ product }: { product: Product }) {
-  const { documentId } = product;
+export default function ProductDetailClient({
+  product,
+  isAdmin,
+}: {
+  product: Product;
+  isAdmin: boolean;
+}) {
+  const { documentId } = product; // Removed 'id' destructuring as it's no longer needed
   const [relatedProducts, setRelatedProducts] = useState<ProductCardProps[]>(
     []
   );
@@ -295,11 +302,9 @@ export default function ProductDetailClient({ product }: { product: Product }) {
 
   const getAltText = (img: ProductImage, index: number) => {
     if (img.alternativeText) return img.alternativeText;
-    // --- FIX 1: Added optional chaining for length ---
     return `${Name} - View ${index + 1} of ${Images?.length || 0}`;
   };
 
-  // --- FIX 2: Fallback to empty array if Images is null to prevent map crash ---
   const slides = (Images || []).map((img) => ({
     src: img.url.startsWith("http") ? img.url : `${strapiUrl}${img.url}`,
     alt: img.alternativeText || Name,
@@ -330,6 +335,9 @@ export default function ProductDetailClient({ product }: { product: Product }) {
           scrollToZoom: true,
         }}
       />
+
+      {/* Removed numericId prop */}
+      <AdminControls documentId={documentId} isAdmin={isAdmin} />
 
       <main className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 mb-16 md:mb-0">
         <div aria-live="polite" className="sr-only">
@@ -459,7 +467,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 handleThumbnailKeyDown(e, selectedImageIndex ?? 0)
               }
             >
-              {/* --- FIX 3: Added optional chaining for mapping --- */}
               {Images?.map((img, index) => {
                 const fullThumbnailUrl = img.url.startsWith("http")
                   ? img.url

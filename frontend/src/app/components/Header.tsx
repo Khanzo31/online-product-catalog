@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import { useState, useEffect } from "react";
 
-export default function Header() {
+export default function Header({ topOffset = false }: { topOffset?: boolean }) {
   const { favoritesCount } = useFavorites();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,7 +14,6 @@ export default function Header() {
   useEffect(() => {
     const threshold = 20;
     const handleScroll = () => {
-      // Use requestAnimationFrame for smoother performance
       requestAnimationFrame(() => {
         setIsScrolled(window.scrollY > threshold);
       });
@@ -25,16 +24,17 @@ export default function Header() {
   }, []);
 
   return (
-    // --- FIX: Changed 'sticky' to 'fixed'. Added w-full. ---
-    // This prevents the "spasm" because the header no longer affects document height when it resizes.
     <header
-      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 border-b border-gray-800 ${
+      className={`fixed left-0 right-0 z-50 w-full transition-all duration-300 border-b border-gray-800 ${
+        topOffset ? "top-9" : "top-0" // FIX: Adjust top position if admin bar exists
+      } ${
         isScrolled
           ? "bg-gray-900/95 backdrop-blur-md shadow-lg h-20"
           : "bg-gray-900 h-24 md:h-28"
       }`}
     >
       <div className="container mx-auto flex items-center justify-between px-4 h-full">
+        {/* ... (rest of the file remains exactly the same) ... */}
         <Link
           href="/"
           className="flex items-center gap-4 group"

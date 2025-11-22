@@ -3,13 +3,9 @@ import type { Metadata } from "next";
 import { Inter, Lora } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
-
-// Import core components
-import Header from "@/app/components/Header";
-import Footer from "@/app/components/Footer";
-import CookieConsentBanner from "@/app/components/CookieConsentBanner";
-import SuspenseWrapper from "@/app/components/SuspenseWrapper";
 import { FavoritesProvider } from "@/app/context/FavoritesContext";
+import MainLayoutClient from "@/app/components/MainLayoutClient";
+import { cookies } from "next/headers"; // Import cookies
 
 const inter = Inter({
   subsets: ["latin"],
@@ -66,11 +62,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // --- SERVER-SIDE ADMIN CHECK ---
+  const cookieStore = await cookies();
+  const password = cookieStore.get("dashboard_password")?.value;
+  const isAdmin = password === process.env.DASHBOARD_PASSWORD;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -105,12 +106,9 @@ export default function RootLayout({
 
         <FavoritesProvider>
           <Toaster position="bottom-right" />
-          <SuspenseWrapper />
-          <Header />
-          {/* --- FIX: Added padding-top to account for fixed header --- */}
-          <main className="flex-grow pt-24 md:pt-28">{children}</main>
-          <Footer />
-          <CookieConsentBanner />
+
+          {/* Pass isAdmin status to the layout client */}
+          <MainLayoutClient isAdmin={isAdmin}>{children}</MainLayoutClient>
         </FavoritesProvider>
       </body>
     </html>
