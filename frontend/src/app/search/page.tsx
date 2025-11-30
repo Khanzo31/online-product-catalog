@@ -1,13 +1,84 @@
 // frontend/src/app/search/page.tsx
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ProductCard from "@/app/components/ProductCard";
 import ProductCardSkeleton from "@/app/components/ProductCardSkeleton";
 import { Product, ProductType, StrapiApiResponse } from "@/types";
 import RecentlyViewed from "@/app/components/RecentlyViewed";
 
 const PAGE_SIZE = 12;
+
+interface FilterContentProps {
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
+  selectedType: string;
+  setSelectedType: (value: string) => void;
+  productTypes: ProductType[];
+  activeFiltersCount: number;
+  onClearAll: () => void;
+}
+
+const FilterContent = ({
+  searchTerm,
+  setSearchTerm,
+  selectedType,
+  setSelectedType,
+  productTypes,
+  activeFiltersCount,
+  onClearAll,
+}: FilterContentProps) => (
+  <>
+    <div className="space-y-6">
+      <div>
+        <label
+          htmlFor="search-keyword"
+          className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"
+        >
+          Keyword
+        </label>
+        <input
+          type="text"
+          id="search-keyword"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="e.g. 'oak table'"
+          className="w-full px-4 py-2.5 bg-white border border-stone-300 rounded-sm shadow-sm focus:ring-1 focus:ring-amber-600 focus:border-amber-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="product-type"
+          className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"
+        >
+          Category
+        </label>
+        <select
+          id="product-type"
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          className="w-full px-4 py-2.5 bg-white border border-stone-300 rounded-sm shadow-sm focus:ring-1 focus:ring-amber-600 focus:border-amber-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all"
+        >
+          <option value="">All Categories</option>
+          {productTypes.map((type) => (
+            <option key={type.id} value={type.documentId}>
+              {type.Name}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+    {activeFiltersCount > 0 && (
+      <button
+        onClick={onClearAll}
+        className="w-full text-center text-sm font-medium text-amber-700 hover:text-amber-900 dark:hover:text-amber-500 hover:underline transition-colors mt-6"
+      >
+        Clear All Filters
+      </button>
+    )}
+  </>
+);
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,15 +90,15 @@ export default function SearchPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0); // Added state for total items
+  const [totalItems, setTotalItems] = useState(0);
   const [statusMessage, setStatusMessage] = useState("Loading products...");
   const [sortBy, setSortBy] = useState("updatedAt:desc");
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const isInitialMount = useRef(true);
 
   const strapiUrl =
     process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
+  // Debounce logic
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -43,7 +114,8 @@ export default function SearchPage() {
       } else {
         setLoadingMore(true);
       }
-      setStatusMessage("Searching...");
+
+      if (isNewSearch) setStatusMessage("Searching...");
 
       const params = new URLSearchParams({
         populate: "*",
@@ -69,7 +141,7 @@ export default function SearchPage() {
         if (!res.ok) {
           const errorBody = await res.text();
           console.error("API Error Response:", errorBody);
-          throw new Error(`Product search failed with status: ${res.status}`);
+          return;
         }
 
         const responseData: StrapiApiResponse<Product> = await res.json();
@@ -77,7 +149,7 @@ export default function SearchPage() {
         const paginationMeta = responseData.meta.pagination;
 
         setTotalPages(paginationMeta.pageCount);
-        setTotalItems(paginationMeta.total); // Set total items
+        setTotalItems(paginationMeta.total);
 
         setResults((prevResults) => {
           const updatedResults = isNewSearch
@@ -86,17 +158,18 @@ export default function SearchPage() {
 
           const totalFound = paginationMeta.total;
           const currentCount = updatedResults.length;
-          setStatusMessage(
-            totalFound > 0
-              ? `Showing ${currentCount} of ${totalFound} products.`
-              : "No products found."
-          );
+
+          if (totalFound === 0) {
+            setStatusMessage("No products found.");
+          } else {
+            setStatusMessage(`Showing ${currentCount} of ${totalFound} items`);
+          }
 
           return updatedResults;
         });
       } catch (error) {
-        setStatusMessage("An error occurred during search.");
-        console.error(error);
+        console.error("Search Error:", error);
+        if (isNewSearch) setStatusMessage("Could not load products.");
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -105,11 +178,15 @@ export default function SearchPage() {
     [debouncedSearchTerm, selectedType, sortBy, strapiUrl]
   );
 
+  // Fetch Product Types (Categories)
   useEffect(() => {
     const fetchProductTypes = async () => {
       try {
         const res = await fetch(`${strapiUrl}/api/product-types`);
-        setProductTypes((await res.json()).data || []);
+        if (res.ok) {
+          const data = await res.json();
+          setProductTypes(data.data || []);
+        }
       } catch (error) {
         console.error("Failed to fetch product types:", error);
       }
@@ -117,12 +194,8 @@ export default function SearchPage() {
     fetchProductTypes();
   }, [strapiUrl]);
 
+  // Main Search Effect
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      handleSearch(1, true);
-      return;
-    }
     handleSearch(1, true);
   }, [debouncedSearchTerm, selectedType, sortBy, handleSearch]);
 
@@ -156,59 +229,6 @@ export default function SearchPage() {
       onClear: handleClearType,
     });
   }
-
-  const FilterContent = () => (
-    <>
-      <div className="space-y-6">
-        <div>
-          <label
-            htmlFor="search-keyword"
-            className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"
-          >
-            Keyword
-          </label>
-          <input
-            type="text"
-            id="search-keyword"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="e.g. 'oak table'"
-            className="w-full px-4 py-2.5 bg-white border border-stone-300 rounded-sm shadow-sm focus:ring-1 focus:ring-amber-600 focus:border-amber-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="product-type"
-            className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"
-          >
-            Category
-          </label>
-          <select
-            id="product-type"
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="w-full px-4 py-2.5 bg-white border border-stone-300 rounded-sm shadow-sm focus:ring-1 focus:ring-amber-600 focus:border-amber-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all"
-          >
-            <option value="">All Categories</option>
-            {productTypes.map((type) => (
-              <option key={type.id} value={type.documentId}>
-                {type.Name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      {activeFilters.length > 0 && (
-        <button
-          onClick={handleClearAll}
-          className="w-full text-center text-sm font-medium text-amber-700 hover:text-amber-900 dark:hover:text-amber-500 hover:underline transition-colors mt-6"
-        >
-          Clear All Filters
-        </button>
-      )}
-    </>
-  );
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -247,7 +267,15 @@ export default function SearchPage() {
             <h2 className="text-lg font-serif font-semibold text-gray-900 dark:text-gray-100 border-b border-stone-200 dark:border-gray-600 pb-3 mb-6 tracking-wide uppercase">
               Refine Search
             </h2>
-            <FilterContent />
+            <FilterContent
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
+              productTypes={productTypes}
+              activeFiltersCount={activeFilters.length}
+              onClearAll={handleClearAll}
+            />
           </div>
         </aside>
 
@@ -288,7 +316,15 @@ export default function SearchPage() {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-6">
-                <FilterContent />
+                <FilterContent
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  selectedType={selectedType}
+                  setSelectedType={setSelectedType}
+                  productTypes={productTypes}
+                  activeFiltersCount={activeFilters.length}
+                  onClearAll={handleClearAll}
+                />
               </div>
               <div className="p-6 border-t border-stone-200 dark:border-gray-700">
                 <button
@@ -367,7 +403,6 @@ export default function SearchPage() {
               </div>
               {page < totalPages && (
                 <div className="text-center mt-16">
-                  {/* --- POLISH: Showing X of Y Items --- */}
                   <p className="text-sm text-gray-500 mb-4 font-serif italic">
                     Showing {results.length} of {totalItems} items
                   </p>
