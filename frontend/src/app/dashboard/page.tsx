@@ -200,12 +200,9 @@ export default async function DashboardPage() {
           <p className="text-red-100 text-sm mb-4">
             Add or edit products in Strapi.
           </p>
+          {/* --- FIX: Use dynamic environment variable link --- */}
           <a
-            href={
-              process.env.NODE_ENV === "production"
-                ? "https://my-strapi-backend-l5qf.onrender.com/admin"
-                : "http://localhost:1337/admin"
-            }
+            href={`${strapiUrl}/admin`}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-white text-red-900 px-4 py-2 rounded-sm text-sm font-bold hover:bg-red-50 transition-colors"
@@ -242,7 +239,6 @@ export default async function DashboardPage() {
                       </a>
                     </div>
 
-                    {/* --- FIX: Escaped double quotes --- */}
                     <div className="text-stone-600 dark:text-stone-300 text-sm leading-relaxed mb-3 bg-stone-50 dark:bg-gray-900 p-3 rounded-sm border border-stone-100 dark:border-gray-700 italic">
                       &quot;{inquiry.Message}&quot;
                     </div>
