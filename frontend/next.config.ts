@@ -1,26 +1,32 @@
 // frontend/next.config.ts
+import type { NextConfig } from "next";
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
   images: {
+    // Fix for "resolved to private ip" error in local development.
+    // We disable Next.js Image Optimization locally because it blocks
+    // fetching from 127.0.0.1 for security reasons.
+    unoptimized: process.env.NODE_ENV === "development",
+
     remotePatterns: [
-      // This pattern is for LOCAL DEVELOPMENT using the default Strapi uploader.
-      // You should keep this for when you work locally.
       {
         protocol: "http",
         hostname: "127.0.0.1",
         port: "1337",
         pathname: "/uploads/**",
       },
-      // This new pattern is for PRODUCTION, allowing images from Cloudinary.
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "1337",
+        pathname: "/uploads/**",
+      },
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        port: "", // Port is empty for standard HTTPS (port 443)
-        pathname: "/**", // Allow any path on this hostname
       },
     ],
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
