@@ -92,7 +92,7 @@ export default function SearchPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [statusMessage, setStatusMessage] = useState("Loading products...");
-  const [sortBy, setSortBy] = useState("updatedAt:desc");
+  const [sortBy, setSortBy] = useState("createdAt:desc");
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   const strapiUrl =
@@ -378,7 +378,7 @@ export default function SearchPage() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="block w-48 pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-amber-600 focus:border-amber-600 rounded-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <option value="updatedAt:desc">Latest Arrivals</option>
+                  <option value="createdAt:desc">Latest Arrivals</option>
                   <option value="Price:asc">Price: Low to High</option>
                   <option value="Price:desc">Price: High to Low</option>
                   <option value="Name:asc">Name: A to Z</option>
