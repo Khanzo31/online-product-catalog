@@ -1,75 +1,55 @@
 # Project Requirements & Technology Stack
 
-This document outlines the requirements for the AlpialCanada Online Product Catalog Website. All listed requirements have been successfully implemented and the project is complete.
+This document outlines the requirements for the AlpialCanada Online Product Catalog Website. All listed requirements have been successfully implemented.
 
 ## 1. Project Overview
 
-This document outlines the functional and non-functional requirements for a responsive online product catalog website. The system serves as a digital showcase for unique products, allowing the site owner to manage content and customers to browse, search, and inquire about products. The project does not include an integrated payment system; inquiries are handled via transactional email. The chosen technical architecture is a modern Headless (Jamstack) approach.
+A responsive online product catalog for unique antiques and collectibles. The system serves as a digital showcase allowing the site owner to manage content via Strapi and "God Mode" frontend tools, while customers browse a gallery-style interface.
 
 ## 2. User Roles
 
-- **Administrator (Owner):** The primary user responsible for managing all website content.
-- **Customer (Visitor):** Any public user who visits the website to browse and inquire about products.
+- **Administrator (Owner):** Manages content via Strapi or directly through the frontend using Admin Mode.
+- **Customer (Visitor):** Browses, searches, saves favorites, and inquiries about products.
 
 ## 3. Functional Requirements
 
-| ID       | Requirement Name                | Priority | Status      |
-| :------- | :------------------------------ | :------- | :---------- |
-| **FR-1** | **Administrator Features**      |          |             |
-| FR-1.1   | Secure Admin Login              | P1       | Implemented |
-| FR-1.3   | Product Creation                | P1       | Implemented |
-| FR-1.4   | Product Management              | P1       | Implemented |
-| FR-1.5   | Product Type Management         | P1       | Implemented |
-| FR-1.7   | Inquiry Management Log          | P1       | Implemented |
-| FR-1.8   | Static Page Management          | P1       | Implemented |
-| FR-1.2   | Admin Dashboard                 | P2       | Implemented |
-| FR-1.6   | Product View Counts             | P3       | Implemented |
-| **FR-2** | **Customer / Visitor Features** |          |             |
-| FR-2.1   | Home Page                       | P1       | Implemented |
-| FR-2.2   | Product Details Page            | P1       | Implemented |
-| FR-2.3   | Product Inquiry Form            | P1       | Implemented |
-| FR-2.4   | Search & Filtering Page         | P1       | Implemented |
-| FR-2.7   | View Static Content             | P1       | Implemented |
-| FR-2.8   | Cookie Consent Banner           | P1       | Implemented |
-| FR-2.3.1 | Customer Inquiry Confirmation   | P2       | Implemented |
-| FR-2.5   | Product Favoriting              | P3       | Implemented |
-| FR-2.6   | Favorites Page                  | P3       | Implemented |
+| ID       | Requirement Name           | Status      | Notes                                                |
+| :------- | :------------------------- | :---------- | :--------------------------------------------------- |
+| **FR-1** | **Core Administration**    |             |                                                      |
+| FR-1.1   | Secure Dashboard Login     | Implemented | Cookie-based auth with server-side validation.       |
+| FR-1.2   | Inquiry Management         | Implemented | View inquiries, click-to-email customers.            |
+| FR-1.3   | Quick Statistics           | Implemented | Dashboard overview of total inventory and inquiries. |
+| **FR-2** | **"God Mode" Admin Tools** |             |                                                      |
+| FR-2.1   | Admin Toolbar              | Implemented | Red bar appears on frontend when logged in.          |
+| FR-2.2   | Frontend Deletion          | Implemented | Delete products directly from the product page.      |
+| FR-2.3   | Direct Edit Link           | Implemented | One-click navigation from frontend to Strapi Admin.  |
+| **FR-3** | **Customer Experience**    |             |                                                      |
+| FR-3.1   | Gallery Interface          | Implemented | "Warm Stone" aesthetic with serif typography.        |
+| FR-3.2   | Advanced Search            | Implemented | Live filtering, debounced input, category selection. |
+| FR-3.3   | Image Lightbox             | Implemented | Full-screen zoomable image gallery.                  |
+| FR-3.4   | Recently Viewed            | Implemented | LocalStorage-based history strip.                    |
+| FR-3.5   | Favorites System           | Implemented | Persisted wishlist functionality.                    |
+| FR-3.6   | Smart "No Results"         | Implemented | Shows history/suggestions instead of empty state.    |
 
 ## 4. Non-Functional Requirements
 
-| ID        | Requirement Name              | Priority | Status      |
-| :-------- | :---------------------------- | :------- | :---------- |
-| **NFR-1** | **Usability & Design**        |          |             |
-| NFR-1.1   | Responsive Design             | P1       | Implemented |
-| NFR-1.2   | Browser Compatibility         | P1       | Implemented |
-| NFR-1.3   | Accessibility (WCAG AA)       | P2       | Implemented |
-| **NFR-2** | **Performance**               |          |             |
-| NFR-2.1   | Fast Page Load Speed          | P1       | Implemented |
-| NFR-2.2   | Image Optimization            | P1       | Implemented |
-| **NFR-3** | **SEO**                       |          |             |
-| NFR-3.1   | SEO-Friendly URLs             | P1       | Implemented |
-| NFR-3.2   | Meta Tags                     | P1       | Implemented |
-| NFR-3.3   | Structured Data (Schema)      | P1       | Implemented |
-| NFR-3.4   | Sitemap.xml                   | P1       | Implemented |
-| **NFR-4** | **Security**                  |          |             |
-| NFR-4.1   | HTTPS Encryption              | P1       | Implemented |
-| NFR-4.2   | Input Validation              | P1       | Implemented |
-| NFR-4.3   | Secure Admin Passwords        | P1       | Implemented |
-| **NFR-5** | **Reliability & Maintenance** |          |             |
-| NFR-5.1   | Transactional Email Service   | P1       | Implemented |
-| NFR-5.2   | Automated Backups             | P1       | Implemented |
-| **NFR-6** | **Analytics & Monitoring**    |          |             |
-| NFR-6.1   | Third-Party Analytics         | P2       | Implemented |
+| ID        | Requirement Name            | Status      | Notes                                                   |
+| :-------- | :-------------------------- | :---------- | :------------------------------------------------------ |
+| **NFR-1** | **Performance**             |             |                                                         |
+| NFR-1.1   | Dynamic Image Optimization  | Implemented | Next.js Image component with Cloudinary.                |
+| NFR-1.2   | Server-Side Rendering (SSR) | Implemented | SEO-critical pages render on the server.                |
+| **NFR-2** | **Security**                |             |                                                         |
+| NFR-2.1   | Admin Token Security        | Implemented | Admin cookies are HTTP-only; Tokens hidden server-side. |
+| NFR-2.2   | Input Sanitization          | Implemented | React handles escaping to prevent XSS.                  |
+| NFR-2.3   | SSRF Protection             | Implemented | Local image optimization disabled in dev mode.          |
 
 ## 5. Technology Stack
 
-| Component               | Technology       | Role & Justification                                                                 |
-| :---------------------- | :--------------- | :----------------------------------------------------------------------------------- |
-| **Front-End Framework** | **Next.js**      | Builds the high-performance, server-rendered user-facing website.                    |
-| **Styling**             | **Tailwind CSS** | A utility-first CSS framework for rapid, responsive UI development.                  |
-| **Back-End (CMS)**      | **Strapi**       | Headless CMS providing a user-friendly admin panel and a content API.                |
-| **Database**            | **PostgreSQL**   | A powerful, open-source relational database for persistent data storage.             |
-| **Media Storage**       | **Cloudinary**   | A cloud-based service for permanent storage, optimization, and delivery of images.   |
-| **Email Service**       | **Resend**       | A transactional email API service to ensure reliable delivery of inquiry emails.     |
-| **Front-End Hosting**   | **Vercel**       | A global hosting platform providing CI/CD and serving the `alpialcanada.com` domain. |
-| **Back-End Hosting**    | **Render**       | A cloud platform used to host the Strapi CMS and PostgreSQL database.                |
+| Component               | Technology      | Role & Version                                              |
+| :---------------------- | :-------------- | :---------------------------------------------------------- |
+| **Front-End Framework** | **Next.js 16**  | React framework (App Router) for SSR and Static Generation. |
+| **Styling**             | **Tailwind v4** | Utility-first CSS with Typography plugin.                   |
+| **Back-End (CMS)**      | **Strapi v5**   | Headless CMS for content management.                        |
+| **Database**            | **PostgreSQL**  | Persistent data storage (Hosted on Render).                 |
+| **Media Storage**       | **Cloudinary**  | Cloud-based image optimization and delivery.                |
+| **Email Service**       | **Resend**      | Transactional emails for inquiry notifications.             |

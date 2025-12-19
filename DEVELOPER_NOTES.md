@@ -1,51 +1,83 @@
-# Developer Notes & Final Project Summary
+# Developer Notes & Technical Architecture
 
-This document serves as the final technical guide and summary for the AlpialCanada Online Product Catalog. The project is functionally complete, and all hosting infrastructure has been upgraded to support production workloads.
+This document serves as the technical guide for the AlpialCanada Online Product Catalog. The project has evolved from a basic MVP to a sophisticated gallery application with administrative features and advanced SEO.
 
-## ⚠️ Critical Project "Gotchas" & Key Learnings
+## Critical Project Configuration
 
-This project has a unique technical configuration. Any future development **MUST** adhere to the following established patterns:
+Any future development MUST adhere to the following established patterns:
 
-1.  **Strapi API Returns a "Flat" Structure:** Unlike modern Strapi defaults, the API for lists (e.g., `/api/products`) returns a flat array of objects (`response.data`). It does not use the nested `attributes` structure. All frontend data mapping must expect this v4-style response.
+1.  **Strapi API Token Permissions (CRITICAL)**
 
-2.  **Routing is by `documentId` (string):** The standard numeric `/:id` route is not used. All links and fetches for single items must use a filter on the `documentId` string (e.g., `/products?filters[documentId][$eq]=...`). The `documentId` is the canonical identifier for all frontend routing.
+    - The `STRAPI_API_TOKEN` in `.env.local` (and Vercel) must have **Full Access** (or at least `Delete` permissions on Products).
+    - If this is set to Read-Only, the "Delete Product" feature in the frontend admin tools will fail with a 403 Forbidden error.
 
-3.  **Use `populate=*` for API Calls:** The most robust and reliable method for fetching relations is to use `populate=*`. Avoid complex, multi-level populate queries as they have proven to be unreliable with this configuration.
+2.  **Next.js Image Optimization (Local vs Production)**
 
-4.  **API Field Names are Case-Sensitive:** The API IDs for relations are case-sensitive (e.g., the relation from `Product` to `Product Type` is `Product` with an uppercase 'P'). Always verify the exact, case-sensitive API ID in the Strapi Content-Type Builder before writing fetch logic.
+    - In `frontend/next.config.ts`, we set `unoptimized: process.env.NODE_ENV === "development"`.
+    - **Reason:** Next.js security blocks fetching images from private IPs (`127.0.0.1`) by default. Disabling optimization locally fixes the broken images during development without compromising production security.
 
-5.  **Dashboard Authentication is a "Dual-Check":** The dashboard has a two-part security model:
+3.  **Admin Architecture**
 
-    - **Layout (`layout.tsx`):** Handles the UI, showing the `LoginForm` if the password cookie is invalid.
-    - **Page (`page.tsx`):** Contains its own identical cookie check to prevent its server-side data fetching from running if unauthenticated. Both are required to prevent server crashes.
+    - **Security:** We do **not** expose the admin cookie to the client browser.
+    - **Mechanism:** `frontend/src/app/layout.tsx` (Server Component) checks the `dashboard_password` cookie securely. It then passes a boolean `isAdmin` prop to `MainLayoutClient.tsx`.
+    - **Visibility:** Components like `AdminToolbar` and `AdminControls` rely on this boolean prop to render UI elements.
+    - **Action Security:** The actual deletion logic (`actions/admin.ts`) re-verifies the cookie on the server before making any API calls to Strapi.
 
-6.  **Local Development Environment Configuration:**
-    - **Image Uploads:** To upload images locally, the Cloudinary provider **must be commented out** in `backend/my-strapi-project/config/plugins.ts`.
-    - **Image Display:** For local images to display, the local Strapi hostname (`127.0.0.1:1337`) **must be added** to the `remotePatterns` in `frontend/next.config.ts`.
-    - **Dashboard Data:** For the dashboard to fetch data, a read-only `STRAPI_API_TOKEN` **must be generated** in the local Strapi admin panel and added to the `frontend/.env.local` file.
+4.  **Centralized Types**
+
+    - Do not define interfaces like `Product` or `ProductImage` inside individual component files.
+    - Import them from `@/types` which maps to `frontend/src/types/index.ts`.
+
+5.  **Strapi API Structure**
+    - Strapi v5 returns a flat structure (`response.data`). We do not use the nested `attributes` structure found in v4 documentation.
+
+## Theme & UI Standards
+
+- **Aesthetic:** Antique Gallery
+- **Palette:**
+  - **Primary Action:** Deep Mahogany (`bg-red-900`) - Used for buttons and primary calls to action.
+  - **Secondary:** Amber/Bronze (`text-amber-700`) - Used for links, badges, and borders.
+  - **Backgrounds:** Stone/Warm Grey (`bg-stone-50`, `bg-stone-100`) - Replaces sterile white/gray backgrounds.
+- **Typography:** Product titles and Headings use `font-serif` (Lora). Capitalization is enforced via CSS (`capitalize`) to handle inconsistent data entry.
+
+## Key Feature Implementations
+
+### 1. Dynamic OpenGraph Images
+
+- **File:** `src/app/products/[documentId]/opengraph-image.tsx`
+- **Function:** Automatically generates a branded social media image (PNG) on the fly for every product url, overlaying the price and name onto the product image.
+
+### 2. Search & Filtering
+
+- **Logic:** The `FilterContent` component is defined _outside_ the main render loop in `SearchPage.tsx` to prevent input focus loss during re-renders.
+- **Sorting:** Defaults to `createdAt:desc` to show the newest arrivals first.
+
+### 3. Sitemap Segmentation
+
+- **Files:** `app/sitemap.ts` (Static pages) and `app/products/sitemap.ts` (Product pages).
+- **Purpose:** Keeps the sitemap organized and scalable as the inventory grows.
+
+## Recent Debugging Resolutions
+
+### 1. Search Bar Focus Loss
+
+- **Problem:** Typing one letter in the search bar caused the input to lose focus.
+- **Resolution:** The Filter component was being re-declared inside the component body. It was moved outside to ensure React preserves the DOM state.
+
+### 2. Dashboard Layout Shift
+
+- **Problem:** The header resizing on scroll caused a layout shift loop (spasm).
+- **Resolution:** The Header position was changed to `fixed`, and padding was applied to the `MainLayoutClient` to compensate.
+
+### 3. SSRF Image Error
+
+- **Problem:** "Image resolved to private IP" error in local development.
+- **Resolution:** Disabled Next.js image optimization in development mode via `next.config.ts`.
 
 ---
 
-## 🐞 Major Debugging Post-Mortem
+## Dependency Status
 
-The project underwent several extensive debugging phases to reach its current stable state.
-
-### 1. API Connection & Data Structure
-
-- **Problem:** The frontend was receiving incorrect data or `400 Bad Request` errors.
-- **Resolution:** This was a multi-faceted issue resolved by:
-  1.  **Fixing Backend Services:** Resetting core API files (`services`, `controllers`) in Strapi to their defaults to ensure endpoints served the correct content.
-  2.  **Rebuilding Corrupted Schema:** Deleting and recreating relation fields (`images`, `Product`) in the Content-Type Builder to fix a corrupted schema that caused `populate` queries to fail.
-  3.  **Refactoring Frontend:** Adapting the entire frontend to handle the project's unique v4-style "flat" API response and to use `documentId` (string) for all routing and single-item fetches.
-
-### 2. Dashboard Authentication
-
-- **Problem:** The server would crash when accessing `/dashboard` while unauthenticated, and fail to fetch data even after a successful login.
-- **Resolution:**
-  1.  The "Dual-Check" security model was implemented in the layout and page files to prevent data fetching before authentication.
-  2.  Server-side `fetch` calls from the dashboard were updated to include a bearer `STRAPI_API_TOKEN`, as these server-to-server calls are anonymous by default.
-
-### 3. Image Upload Failures (Production)
-
-- **Problem:** Uploading images in the production Strapi admin panel caused the `my-strapi-backend` service on Render to crash due to exceeding its memory limit (512MB).
-- **Resolution:** The problem was permanently resolved by upgrading the **Render Web Service plan from "Free" to "Standard"**, which increased the available RAM from 512MB to 2GB. This provided sufficient resources for Strapi to process multiple and/or large images without crashing.
+- **Next.js:** v16.x (Patched for CVE-2025-55182)
+- **React:** v19.x
+- **Tailwind:** v4

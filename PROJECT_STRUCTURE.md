@@ -6,7 +6,7 @@ ONLINE-PRODUCT-CATALOG/
 │ ├── .tmp/
 │ ├── config/
 │ │ ├── database/
-│ │ │ └── migrations/
+│ │ │ ├── migrations/
 │ │ │ └── .gitkeep
 │ │ ├── admin.ts
 │ │ ├── api.ts
@@ -70,16 +70,11 @@ ONLINE-PRODUCT-CATALOG/
 │ │ │ │ └── product-type.ts
 │ │ │ └── .gitkeep
 │ │ ├── extensions/
-│ │ │ └── .gitkeep
 │ │ └── index.ts
 │ ├── types/
-│ │ └── generated/
-│ │ ├── components.d.ts
-│ │ └── contentTypes.d.ts
 │ ├── .env
 │ ├── .env.example
 │ ├── .gitignore
-│ ├── strapi-updater.json
 │ ├── favicon.png
 │ ├── package-lock.json
 │ ├── package.json
@@ -106,40 +101,51 @@ ONLINE-PRODUCT-CATALOG/
 │ │ ├── vercel.svg
 │ │ └── window.svg
 │ ├── src/
-│ │ └── app/
-│ │ ├── [slug]/
-│ │ │ └── page.tsx
-│ │ ├── components/
-│ │ │ ├── CookieConsentBanner.tsx
-│ │ │ ├── Footer.tsx
-│ │ │ ├── GoogleAnalytics.tsx
-│ │ │ ├── Header.tsx
-│ │ │ ├── ProductCard.tsx
-│ │ │ ├── ProductCardSkeleton.tsx
-│ │ │ ├── ProductInquiryForm.tsx
-│ │ │ ├── RelatedProducts.tsx
-│ │ │ ├── SocialShareButtons.tsx
-│ │ │ └── SuspenseWrapper.tsx
-│ │ ├── context/
-│ │ │ └── FavoritesContext.tsx
-│ │ ├── dashboard/
-│ │ │ ├── actions.ts
+│ │ ├── actions/
+│ │ │ └── admin.ts
+│ │ ├── app/
+│ │ │ ├── [slug]/
+│ │ │ │ └── page.tsx
+│ │ │ ├── components/
+│ │ │ │ ├── AdminControls.tsx
+│ │ │ │ ├── AdminToolbar.tsx
+│ │ │ │ ├── CookieConsentBanner.tsx
+│ │ │ │ ├── Footer.tsx
+│ │ │ │ ├── GoogleAnalytics.tsx
+│ │ │ │ ├── Header.tsx
+│ │ │ │ ├── MainLayoutClient.tsx
+│ │ │ │ ├── ProductCard.tsx
+│ │ │ │ ├── ProductCardSkeleton.tsx
+│ │ │ │ ├── ProductInquiryForm.tsx
+│ │ │ │ ├── RecentlyViewed.tsx
+│ │ │ │ ├── RelatedProducts.tsx
+│ │ │ │ ├── SocialShareButtons.tsx
+│ │ │ │ └── SuspenseWrapper.tsx
+│ │ │ ├── context/
+│ │ │ │ └── FavoritesContext.tsx
+│ │ │ ├── dashboard/
+│ │ │ │ ├── actions.ts
+│ │ │ │ ├── layout.tsx
+│ │ │ │ ├── LoginForm.tsx
+│ │ │ │ └── page.tsx
+│ │ │ ├── favorites/
+│ │ │ │ └── page.tsx
+│ │ │ ├── products/
+│ │ │ │ ├── [documentId]/
+│ │ │ │ │ ├── opengraph-image.tsx
+│ │ │ │ │ ├── page.tsx
+│ │ │ │ │ └── ProductDetailClient.tsx
+│ │ │ │ └── sitemap.ts
+│ │ │ ├── search/
+│ │ │ │ └── page.tsx
+│ │ │ ├── favicon.ico
+│ │ │ ├── globals.css
 │ │ │ ├── layout.tsx
-│ │ │ ├── LoginForm.tsx
-│ │ │ └── page.tsx
-│ │ ├── favorites/
-│ │ │ └── page.tsx
-│ │ ├── products/
-│ │ │ └── [documentId]/
+│ │ │ ├── not-found.tsx
 │ │ │ ├── page.tsx
-│ │ │ └── ProductDetailClient.tsx
-│ │ ├── search/
-│ │ │ └── page.tsx
-│ │ ├── favicon.ico
-│ │ ├── globals.css
-│ │ ├── layout.tsx
-│ │ ├── page.tsx
-│ │ └── sitemap.ts
+│ │ │ └── sitemap.ts
+│ │ └── types/
+│ │ └── index.ts
 │ ├── .env.local
 │ ├── .gitignore
 │ ├── eslint.config.mjs
@@ -152,6 +158,7 @@ ONLINE-PRODUCT-CATALOG/
 │ ├── tailwind.config.js
 │ └── tsconfig.json
 ├── .gitignore
+├── ADMIN_MANUAL.md
 ├── DEVELOPER_NOTES.md
 ├── NEXT_STEPS.md
 ├── PROJECT_STRUCTURE.md
