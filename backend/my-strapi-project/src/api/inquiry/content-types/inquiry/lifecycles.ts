@@ -17,7 +17,6 @@ interface PopulatedInquiry {
 export default {
   async afterCreate(event) {
     const { result } = event;
-
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const inquiry: PopulatedInquiry = await strapi.entityService.findOne(
@@ -32,73 +31,51 @@ export default {
       !inquiry ||
       !inquiry.Product ||
       !inquiry.Product.Name ||
-      !inquiry.Product.documentId ||
       !inquiry.CustomerName ||
       !inquiry.CustomerEmail
     ) {
-      console.error(
-        "Could not send email: Essential inquiry or product data is missing."
-      );
+      console.error("Inquiry data missing. Email aborted.");
       return;
     }
 
-    const customerName = inquiry.CustomerName;
-    const customerEmail = inquiry.CustomerEmail;
-    const customerMessage = inquiry.Message || "No message provided.";
+    const adminEmail = process.env.ADMIN_EMAIL || "alpialcanada@gmail.com";
     const productName = inquiry.Product.Name;
     const productUrl = `https://www.alpialcanada.com/products/${inquiry.Product.documentId}`;
 
-    // --- CHANGED: Use Environment Variable with fallback ---
-    const adminEmail = process.env.ADMIN_EMAIL || "alpialcanada@gmail.com";
-
     try {
-      await Promise.all([
-        // --- Email to the Site Administrator ---
-        resend.emails.send({
-          from: "AlpialCanada Inquiry <inquiry@alpialcanada.com>",
-          to: adminEmail,
-          subject: `New Inquiry for: ${productName}`,
-          html: `
-            <h1>New Product Inquiry</h1>
-            <p>You have received a new inquiry for the product: <strong>${productName}</strong>.</p>
-            <hr>
-            <h2>Customer Details:</h2>
-            <ul>
-              <li><strong>Name:</strong> ${customerName}</li>
-              <li><strong>Email:</strong> ${customerEmail}</li>
-            </ul>
-            <h2>Message:</h2>
-            <p>${customerMessage}</p>
-            <hr>
-            <p><a href="${productUrl}">View Product Page</a></p>
-          `,
-        }),
+      await resend.emails.send({
+        from: "AlpialCanada <inquiry@alpialcanada.com>",
+        to: adminEmail,
+        replyTo: inquiry.CustomerEmail, // FIXED: Changed reply_to to replyTo
+        bcc: inquiry.CustomerEmail,
+        subject: `Product Inquiry: ${productName} (from ${inquiry.CustomerName})`,
+        html: `
+          <div style="font-family: serif; line-height: 1.6; color: #333; max-width: 600px;">
+            <h2 style="color: #7f1d1d; border-bottom: 1px solid #ddd; padding-bottom: 10px;">New Inquiry Received</h2>
+            
+            <p><strong>Item:</strong> ${productName}</p>
+            <p><strong>From:</strong> ${inquiry.CustomerName} (${inquiry.CustomerEmail})</p>
+            
+            <div style="background: #f9f8f6; padding: 20px; border-left: 4px solid #b45309; margin: 20px 0;">
+              <p style="margin-top: 0; font-weight: bold;">Message:</p>
+              <p style="font-style: italic;">"${inquiry.Message || "No message provided."}"</p>
+            </div>
 
-        // --- Confirmation Email to the Customer ---
-        resend.emails.send({
-          from: "AlpialCanada <confirmation@alpialcanada.com>",
-          to: customerEmail,
-          subject: "Your Inquiry to AlpialCanada has been Received",
-          html: `
-            <h1>Thank You, ${customerName}!</h1>
-            <p>We have successfully received your inquiry for the product: <strong>${productName}</strong>.</p>
-            <p>We will review your message and get back to you as soon as possible.</p>
-            <p>You can view the product again here: <a href="${productUrl}">${productName}</a></p>
-            <br>
-            <p>Sincerely,</p>
-            <p>The AlpialCanada Team</p>
-          `,
-        }),
-      ]);
+            <p><a href="${productUrl}" style="color: #b45309; font-weight: bold;">View Original Listing on Site</a></p>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
+            
+            <p style="font-size: 12px; color: #666;">
+              <strong>Note for Admin:</strong> Simply click "Reply" to respond directly to the customer. 
+              The customer has been BCC'd on this email as a confirmation of their request.
+            </p>
+          </div>
+        `,
+      });
 
-      console.log(
-        `Inquiry emails sent successfully for inquiry ID: ${inquiry.id}`
-      );
+      console.log(`Smart-threaded email sent for Inquiry ${inquiry.id}`);
     } catch (error) {
-      console.error(
-        `Error sending inquiry emails for inquiry ID: ${inquiry.id}`,
-        error
-      );
+      console.error("Resend Error:", error);
     }
   },
 };

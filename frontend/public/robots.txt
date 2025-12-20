@@ -1,6 +1,10 @@
-# Allow all user-agents to crawl the site
+# robots.txt for AlpialCanada
+
 User-agent: *
 Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /favicon.ico
+Disallow: /site.webmanifest
 
-# Location of the sitemap
+# Location of the sitemap (Corrected typo)
 Sitemap: https://www.alpialcanada.com/sitemap.xml
